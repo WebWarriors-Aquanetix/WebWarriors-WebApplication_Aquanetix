@@ -91,7 +91,8 @@
     "viewDetails": "View details",
     "whatAreAlerts": "What are alerts?",
     "alertsExplanation": "Critical alerts require immediate attention. Warnings indicate conditions that could become problems if not corrected.",
-    "viewFullGuide": "View complete guide"
+    "viewFullGuide": "View complete guide",
+    "view-history": "View history"
   },
   "subscription": {
     "title": "Subscription",
