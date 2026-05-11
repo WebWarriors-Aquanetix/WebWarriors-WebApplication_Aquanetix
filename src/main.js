@@ -13,6 +13,7 @@ import {
     ToastService, Toolbar, Tooltip
 } from 'primevue';
 import i18n from './i18n.js';
+import router from './router.js';
 import pinia from './pinia.js';
 
 createApp(App)
