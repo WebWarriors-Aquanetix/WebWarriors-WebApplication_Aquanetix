@@ -2,14 +2,70 @@
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import useMonitoringStore from '../../application/monitoring.store.js';
-import { onMounted, computed, toRefs } from 'vue';
+import { Alert } from '../../domain/model/alert.entity.js';
+import { onMounted, computed, toRefs, ref } from 'vue';
 
 const { t }  = useI18n();
 const router = useRouter();
 const route  = useRoute();
 const store  = useMonitoringStore();
 const { sensorsLoaded } = toRefs(store);
-const { fetchSensors } = store;
+const { fetchSensors, updateSensor, resolveAlertBySensorName, addAlert } = store;
+
+// ── Threshold dialog ────────────────────────────────────────────
+const showThresholdDialog = ref(false);
+const thresholdForm = ref({ minAlert: 0, maxAlert: 0 });
+
+const openThresholdDialog = () => {
+  thresholdForm.value.minAlert = sensor.value.minAlert;
+  thresholdForm.value.maxAlert = sensor.value.maxAlert;
+  showThresholdDialog.value = true;
+};
+
+const calcStatus = (value, min, max) => {
+  if (value < min || value > max) return 'Alerta';
+  const margin = (max - min) * 0.1;
+  if (value <= min + margin || value >= max - margin) return 'Advertencia';
+  return 'Normal';
+};
+
+const saveThresholds = () => {
+  const min    = Number(thresholdForm.value.minAlert);
+  const max    = Number(thresholdForm.value.maxAlert);
+  const cv     = sensor.value.currentValue;
+  const status = calcStatus(cv, min, max);
+
+  const updated = {
+    ...sensor.value,
+    minAlert:         min,
+    maxAlert:         max,
+    recommendedRange: `${min} - ${max} ${sensor.value.unit}`,
+    status,
+    lastUpdated:      new Date().toISOString(),
+  };
+
+  updateSensor(updated);
+
+  // Gestionar alertas según nuevo estado
+  resolveAlertBySensorName(sensor.value.name);
+  if (status === 'Alerta' || status === 'Advertencia') {
+    addAlert(new Alert({
+      sensorName: sensor.value.name,
+      location:   sensor.value.location,
+      type:       sensor.value.type,
+      severity:   status === 'Alerta' ? 'Crítica' : 'Advertencia',
+      message:    status === 'Alerta'
+          ? `El sensor ${sensor.value.name} (${sensor.value.type}) superó el umbral permitido.`
+          : `El sensor ${sensor.value.name} (${sensor.value.type}) se encuentra cerca del límite.`,
+      timestamp:  new Date().toISOString(),
+      status:     'Activa',
+      value:      cv,
+      threshold:  cv < min ? min : max,
+    }));
+  }
+
+  showThresholdDialog.value = false;
+};
 
 onMounted(() => {
   if (!store.sensorsLoaded) fetchSensors();
@@ -52,7 +108,7 @@ const chartBars = computed(() => {
     }
 
     const hoursAgo = lastIdx - i;
-    const label    = hoursAgo === 0 ? 'Ahora' : `-${hoursAgo}h`;
+    const label = hoursAgo === 0 ? t('sensorDetail.now') : `-${hoursAgo}h`;
 
     return {
       value: v,
@@ -90,7 +146,7 @@ const refLines = computed(() => {
     </div>
 
     <div v-else-if="!sensor" class="text-center py-6">
-      <p class="text-color-secondary">Sensor no encontrado.</p>
+      <p class="text-color-secondary">{{ t('sensorDetail.notFound') }}</p>
     </div>
 
     <template v-else>
@@ -104,7 +160,7 @@ const refLines = computed(() => {
         </div>
         <div class="flex align-items-center gap-2">
           <pv-tag :value="sensor.status" :severity="statusSeverity(sensor.status)" />
-          <pv-button label="Exportar datos" icon="pi pi-download" outlined size="small" />
+          <pv-button :label="t('sensorDetail.exportData')" icon="pi pi-download" outlined size="small" />
         </div>
       </div>
 
@@ -226,10 +282,10 @@ const refLines = computed(() => {
               <!-- Pie del gráfico: rango recomendado y última lectura -->
               <div class="flex justify-content-between mt-3">
                                 <span class="text-xs text-color-secondary">
-                                    Rango recomendado: <strong>{{ sensor.recommendedRange }} {{ sensor.unit }}</strong>
+                                    {{ t('sensorDetail.recommendedRangeLabel') }}: <strong>{{ sensor.recommendedRange }} {{ sensor.unit }}</strong>
                                 </span>
                 <span class="text-xs text-color-secondary">
-                                    {{ sensor.history.length }} lecturas · última:
+                                    {{ sensor.history.length }} {{ t('sensorDetail.readings') }} · {{ t('sensorDetail.latest') }}:
                                     <strong>{{ sensor.currentValue }} {{ sensor.unit }}</strong>
                                 </span>
               </div>
@@ -303,7 +359,49 @@ const refLines = computed(() => {
                   outlined
                   size="small"
                   class="w-full"
+                  @click="openThresholdDialog"
               />
+
+              <!-- Dialog editar umbrales -->
+              <pv-dialog
+                  v-model:visible="showThresholdDialog"
+                  :header="t('sensorDetail.editThresholdsTitle')"
+                  :modal="true"
+                  :style="{ width: '360px' }"
+              >
+                <div class="flex flex-column gap-3 pt-2">
+                  <div class="field">
+                    <label class="font-medium mb-1 block" style="color:#3b82f6;">
+                      <i class="pi pi-arrow-down mr-1"></i> Umbral mínimo ({{ sensor.unit }})
+                    </label>
+                    <pv-input-number
+                        v-model="thresholdForm.minAlert"
+                        class="w-full"
+                        :min="0"
+                        :max-fraction-digits="2"
+                    />
+                  </div>
+                  <div class="field">
+                    <label class="font-medium mb-1 block" style="color:#ef4444;">
+                      <i class="pi pi-arrow-up mr-1"></i> Umbral máximo ({{ sensor.unit }})
+                    </label>
+                    <pv-input-number
+                        v-model="thresholdForm.maxAlert"
+                        class="w-full"
+                        :min="0"
+                        :max-fraction-digits="2"
+                    />
+                  </div>
+                  <p class="text-xs text-color-secondary m-0">
+                    Valor actual: <strong>{{ sensor.currentValue }} {{ sensor.unit }}</strong>.
+                    El estado se recalculará automáticamente.
+                  </p>
+                </div>
+                <template #footer>
+                  <pv-button :label="t('option.cancel')" text @click="showThresholdDialog = false" />
+                  <pv-button :label="t('sensorDetail.saveThresholds')" icon="pi pi-save" @click="saveThresholds" />
+                </template>
+              </pv-dialog>
             </template>
           </pv-card>
 

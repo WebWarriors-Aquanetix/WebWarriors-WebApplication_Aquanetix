@@ -1,13 +1,22 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
+import { computed } from 'vue';
 
 const { locale, availableLocales } = useI18n();
+
+// Computed que evita deseleccionar el idioma activo
+const selectedLocale = computed({
+  get: () => locale.value,
+  set: (val) => {
+    if (val && val !== locale.value) {
+      locale.value = val;
+    }
+  }
+});
 </script>
 
 <template>
-  <!-- Mismo componente que el learning-center: pv-select-button -->
-  <!-- El override de color en style scoped corrige el contraste sobre el toolbar azul -->
-  <pv-select-button v-model="locale" :options="availableLocales">
+  <pv-select-button v-model="selectedLocale" :options="availableLocales" :allow-empty="false">
     <template #option="slotProps">
       <span>{{ slotProps.option.toUpperCase() }}</span>
     </template>
@@ -15,9 +24,6 @@ const { locale, availableLocales } = useI18n();
 </template>
 
 <style scoped>
-/* Override: fuerza que el SelectButton sea legible sobre el toolbar bg-primary (#007BFF).
-   El componente seleccionado queda blanco con texto azul;
-   el no seleccionado queda transparente con borde y texto blancos. */
 :deep(.p-selectbutton .p-togglebutton) {
   background: transparent;
   border-color: white;

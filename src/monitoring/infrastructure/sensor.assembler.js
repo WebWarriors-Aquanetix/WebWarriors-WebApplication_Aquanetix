@@ -7,7 +7,10 @@ import { Sensor } from '../domain/model/sensor.entity.js';
  */
 export class SensorAssembler {
     static toEntityFromResource(resource) {
-        return new Sensor({ ...resource });
+        return new Sensor({
+            ...resource,
+            id: resource.id,   // Keep as string - MockAPI always returns string IDs
+        });
     }
 
     static toEntitiesFromResponse(response) {
