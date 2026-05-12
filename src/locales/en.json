@@ -129,7 +129,12 @@
     "viewFullGuide": "View complete guide",
     "view-history": "View history",
     "autoMsgCritical": "Device {name} ({type}) exceeded the allowed threshold.",
-    "autoMsgWarning": "Device {name} ({type}) is near the limit."
+    "autoMsgWarning": "Device {name} ({type}) is near the limit.",
+    "resolvedHistory": "Alert history",
+    "resolvedSubtitle": "Record of alerts that have been resolved.",
+    "resolvedCount": "{count} resolved alert(s) in history",
+    "noResolved": "No resolved alerts in history.",
+    "noAlerts": "No active alerts."
   },
   "subscription": {
     "title": "Subscription",

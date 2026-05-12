@@ -129,7 +129,12 @@
     "viewFullGuide": "Ver guía completa",
     "view-history": "Ver historial",
     "autoMsgCritical": "El dispositivo {name} ({type}) superó el umbral permitido.",
-    "autoMsgWarning": "El dispositivo {name} ({type}) se encuentra cerca del límite."
+    "autoMsgWarning": "El dispositivo {name} ({type}) se encuentra cerca del límite.",
+    "resolvedHistory": "Historial de alertas",
+    "resolvedSubtitle": "Registro de alertas que ya fueron atendidas y resueltas.",
+    "resolvedCount": "{count} alerta(s) resuelta(s) en el historial",
+    "noResolved": "No hay alertas resueltas en el historial.",
+    "noAlerts": "Sin alertas activas."
   },
   "subscription": {
     "title": "Suscripción",
