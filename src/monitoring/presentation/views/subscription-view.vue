@@ -1,9 +1,11 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import useMonitoringStore from '../../application/monitoring.store.js';
 import { onMounted, toRefs } from 'vue';
 
 const { t } = useI18n();
+const router = useRouter();
 const store = useMonitoringStore();
 const { subscription, subscriptionLoaded } = toRefs(store);
 const { fetchSubscription } = store;
@@ -52,7 +54,7 @@ const usagePercent = (used, limit) => Math.round((used / limit) * 100);
                 </li>
               </ul>
               <div class="flex gap-2">
-                <pv-button :label="t('subscription.changePlan')" icon="pi pi-refresh" outlined size="small" />
+                <pv-button :label="t('subscription.changePlan')" icon="pi pi-refresh" outlined size="small" @click="router.push({ name: 'monitoring-change-plan' })" />
                 <pv-button :label="t('subscription.cancelSubscription')" severity="danger" text size="small" />
               </div>
             </template>

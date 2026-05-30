@@ -1,10 +1,8 @@
 <script setup>
 import LanguageSwitcher from './language-switcher.vue';
-import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const drawer = ref(false);
 
 const items = [
   { label: 'option.dashboard',    to: '/monitoring/dashboard' },
@@ -12,10 +10,6 @@ const items = [
   { label: 'option.alerts',       to: '/monitoring/alerts' },
   { label: 'option.subscription', to: '/monitoring/subscription' },
 ];
-
-const toggleDrawer = () => {
-  drawer.value = !drawer.value;
-};
 </script>
 
 <template>
@@ -25,11 +19,17 @@ const toggleDrawer = () => {
   <div class="header">
     <pv-toolbar class="bg-primary">
       <template #start>
-        <pv-button class="p-button-text" icon="pi pi-bars" @click="toggleDrawer" />
-        <!-- Manrope para el brand name, peso 700, igual que el Style Guide -->
-        <h3 style="font-family: 'Manrope', sans-serif; font-weight: 700; color: white; margin: 0 0 0 8px; letter-spacing: 0.5px;">
-          Aquanetix
-        </h3>
+        <!-- Logo + nombre -->
+        <div class="flex align-items-center gap-2">
+          <img
+              src="/Aquanetix_Logo.png"
+              alt="Aquanetix"
+              style="height: 36px; width: auto; object-fit: contain;"
+          />
+          <h3 style="font-family:'Manrope',sans-serif;font-weight:700;color:white;margin:0;letter-spacing:0.5px;">
+            Aquanetix
+          </h3>
+        </div>
       </template>
       <template #center></template>
       <template #end>
@@ -43,17 +43,14 @@ const toggleDrawer = () => {
         <language-switcher />
       </template>
     </pv-toolbar>
-    <pv-drawer v-model:visible="drawer" />
   </div>
 
-  <!-- main-content: fondo slate del Style Guide, padding múltiplo de 8px -->
   <div class="main-content">
     <router-view />
   </div>
 
-  <!-- Footer: verde bosque del Style Guide -->
-  <div style="background: var(--color-forest); padding: 12px 24px; text-align: center;">
-    <p class="m-0 text-sm" style="color: rgba(255,255,255,0.8); font-family: 'Inter', sans-serif;">
+  <div style="background:var(--color-forest);padding:12px 24px;text-align:center;">
+    <p class="m-0 text-sm" style="color:rgba(255,255,255,0.8);font-family:'Inter',sans-serif;">
       © 2026 Aquanetix — Water Quality Monitoring Platform
     </p>
   </div>
@@ -67,9 +64,8 @@ const toggleDrawer = () => {
   width: 100%;
 }
 
-/* padding y min-height en múltiplos de 8px (base-8 del Style Guide) */
 .main-content {
-  padding: 24px;           /* 3 × 8px */
+  padding: 24px;
   background: var(--color-slate);
   min-height: calc(100vh - 104px);
 }

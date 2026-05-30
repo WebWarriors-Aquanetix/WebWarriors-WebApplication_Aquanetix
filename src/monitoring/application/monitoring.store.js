@@ -4,31 +4,26 @@ import { MonitoringApi } from '../infrastructure/monitoring-api.js';
 import { SensorAssembler } from '../infrastructure/sensor.assembler.js';
 import { AlertAssembler } from '../infrastructure/alert.assembler.js';
 import { Sensor } from '../domain/model/sensor.entity.js';
+import { Alert } from '../domain/model/alert.entity.js';
 
 const monitoringApi = new MonitoringApi();
 
-/**
- * Reactive store that exposes Monitoring commands and queries.
- * Follows the same pattern as publishing.store.js from the learning-center.
- */
 const useMonitoringStore = defineStore('monitoring', () => {
 
-    // ── State ──────────────────────────────────────────────────────────────
     const sensors      = ref([]);
     const alerts       = ref([]);
     const subscription = ref(null);
+    const plans        = ref([]);
     const errors       = ref([]);
 
     const sensorsLoaded      = ref(false);
     const alertsLoaded       = ref(false);
     const subscriptionLoaded = ref(false);
+    const plansLoaded        = ref(false);
 
-    // ── Computed ───────────────────────────────────────────────────────────
     const activeSensorsCount  = computed(() => sensors.value.filter(s => s.status !== 'Alerta').length);
     const criticalAlertsCount = computed(() => alerts.value.filter(a => a.severity === 'Crítica' && a.status === 'Activa').length);
     const activeAlerts        = computed(() => alerts.value.filter(a => a.status === 'Activa'));
-
-    // ── Actions ────────────────────────────────────────────────────────────
 
     function fetchSensors() {
         monitoringApi.getSensors()
@@ -40,15 +35,9 @@ const useMonitoringStore = defineStore('monitoring', () => {
     }
 
     function getSensorById(id) {
-        const idNum = parseInt(id);
-        return sensors.value.find(s => s.id === idNum);
+        return sensors.value.find(s => String(s.id) === String(id));
     }
 
-    /**
-     * Creates a new sensor via the API and adds it to local state.
-     * Follows the same pattern as addTutorial() in publishing.store.js.
-     * @param {Sensor} sensor
-     */
     function addSensor(sensor) {
         monitoringApi.createSensor(sensor)
             .then(response => {
@@ -58,16 +47,11 @@ const useMonitoringStore = defineStore('monitoring', () => {
             .catch(error => errors.value.push(error));
     }
 
-    /**
-     * Updates an existing sensor via the API and refreshes local state.
-     * Follows the same pattern as updateTutorial() in publishing.store.js.
-     * @param {Sensor} sensor
-     */
     function updateSensor(sensor) {
         monitoringApi.updateSensor(sensor)
             .then(response => {
                 const updated = SensorAssembler.toEntityFromResource(response.data);
-                const index = sensors.value.findIndex(s => s.id === updated.id);
+                const index = sensors.value.findIndex(s => String(s.id) === String(updated.id));
                 if (index !== -1) sensors.value[index] = updated;
             })
             .catch(error => errors.value.push(error));
@@ -82,6 +66,19 @@ const useMonitoringStore = defineStore('monitoring', () => {
             .catch(error => errors.value.push(error));
     }
 
+    /**
+     * Crea una alerta en la API y la agrega al estado local.
+     * @param {Alert} alert
+     */
+    function addAlert(alert) {
+        monitoringApi.createAlert(alert)
+            .then(response => {
+                const created = AlertAssembler.toEntityFromResource(response.data);
+                alerts.value.push(created);
+            })
+            .catch(error => errors.value.push(error));
+    }
+
     function fetchSubscription() {
         monitoringApi.getSubscription()
             .then(response => {
@@ -92,15 +89,83 @@ const useMonitoringStore = defineStore('monitoring', () => {
             .catch(error => errors.value.push(error));
     }
 
+    function fetchPlans() {
+        monitoringApi.getPlans()
+            .then(response => {
+                plans.value = Array.isArray(response.data) ? response.data : [];
+                plansLoaded.value = true;
+            })
+            .catch(error => errors.value.push(error));
+    }
+
+    /**
+     * Actualiza la suscripción activa en la API y en el estado local.
+     * @param {Object} updated - Objeto subscription actualizado
+     */
+    function updateSubscription(updated) {
+        // MockAPI returns id as part of the object; fall back to "1" if missing
+        const id = subscription.value?.id ?? '1';
+        monitoringApi.updateSubscription(id, updated)
+            .then(() => {
+                subscription.value = { ...updated, id };
+            })
+            .catch(() => {
+                // Even if API call fails, update local state so UI reflects change
+                subscription.value = { ...updated, id };
+            });
+    }
+
+
+    /**
+     * Elimina un sensor de la API y lo quita del estado local.
+     */
+    function deleteSensor(id) {
+        monitoringApi.deleteSensor(id)
+            .then(() => {
+                sensors.value = sensors.value.filter(s => String(s.id) !== String(id));
+            })
+            .catch(error => errors.value.push(error));
+    }
+
+
+    /**
+     * Marca como resuelta la alerta activa de un sensor (por sensorName).
+     */
+    function resolveAlertBySensorName(sensorName) {
+        const active = alerts.value.find(
+            a => a.sensorName === sensorName && a.status === 'Activa'
+        );
+        if (!active) return;
+        const resolved = { ...active, status: 'Resuelta' };
+        monitoringApi.updateAlert(resolved)
+            .then(() => {
+                const idx = alerts.value.findIndex(a => a.id === active.id);
+                if (idx !== -1) alerts.value[idx] = { ...alerts.value[idx], status: 'Resuelta' };
+            })
+            .catch(error => errors.value.push(error));
+    }
+
+    /**
+     * Elimina todas las alertas activas de un sensor (por sensorName).
+     */
+    function deleteAlertsBySensorName(sensorName) {
+        const toDelete = alerts.value.filter(a => a.sensorName === sensorName);
+        toDelete.forEach(alert => {
+            monitoringApi.deleteAlert(alert.id)
+                .then(() => {
+                    alerts.value = alerts.value.filter(a => a.id !== alert.id);
+                })
+                .catch(error => errors.value.push(error));
+        });
+    }
+
     return {
-        // state
-        sensors, alerts, subscription, errors,
-        sensorsLoaded, alertsLoaded, subscriptionLoaded,
-        // computed
+        sensors, alerts, subscription, plans, errors,
+        sensorsLoaded, alertsLoaded, subscriptionLoaded, plansLoaded,
         activeSensorsCount, criticalAlertsCount, activeAlerts,
-        // actions
-        fetchSensors, getSensorById, addSensor, updateSensor,
-        fetchAlerts, fetchSubscription
+        fetchSensors, getSensorById, addSensor, updateSensor, deleteSensor,
+        fetchAlerts, addAlert, resolveAlertBySensorName, deleteAlertsBySensorName,
+        fetchSubscription, fetchPlans, updateSubscription
     };
 });
 

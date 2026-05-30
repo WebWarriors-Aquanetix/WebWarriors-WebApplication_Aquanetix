@@ -37,7 +37,7 @@ const formatDate = (iso) => {
           @click="router.push('/monitoring/alerts')"
       />
       <div>
-        <h1 class="text-3xl font-bold m-0" style="font-family: 'Manrope', sans-serif;">Historial de alertas</h1>
+        <h1 class="text-3xl font-bold m-0" style="font-family: 'Manrope', sans-serif;">{{ t('alerts.resolvedHistory') }}</h1>
         <p class="text-color-secondary mt-1 mb-0">
           Registro de alertas que ya fueron atendidas y resueltas.
         </p>
@@ -51,7 +51,7 @@ const formatDate = (iso) => {
     <template v-else>
       <div v-if="resolvedAlerts.length === 0" class="text-center py-6 text-color-secondary">
         <i class="pi pi-inbox" style="font-size: 2.5rem;"></i>
-        <p class="mt-2">No hay alertas resueltas en el historial.</p>
+        <p class="mt-2">{{ t('alerts.noResolved') }}</p>
       </div>
 
       <div v-else>
@@ -61,7 +61,7 @@ const formatDate = (iso) => {
             <div class="flex align-items-center gap-2">
               <i class="pi pi-history" style="color: #10B981; font-size: 1.2rem;"></i>
               <span class="text-sm">
-                                <strong>{{ resolvedAlerts.length }}</strong> alerta(s) resuelta(s) en el historial
+                                {{ t('alerts.resolvedCount', { count: resolvedAlerts.length }) }}
                             </span>
             </div>
           </template>
