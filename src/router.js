@@ -9,10 +9,10 @@ const pageNotFound = () => import('./shared/presentation/views/page-not-found.vu
 
 const routes = [
     { path: '/dashboard', component: dashboardView, meta: { title: 'Dashboard' } },
-    { path: '/sensors',             name: 'monitoring-sensors',          component: sensorList,       meta: { title: 'Sensors' } },
-    { path: '/sensors/new',         name: 'monitoring-sensor-new',       component: sensorForm,       meta: { title: 'New Sensor' } },
-    { path: '/sensors/:id/edit',    name: 'monitoring-sensor-edit',      component: sensorForm,       meta: { title: 'Edit Sensor' } },
-    { path: '/sensors/:id',         name: 'monitoring-sensor-detail',    component: sensorDetail,     meta: { title: 'Sensor Detail' } },
+    { path: '/devices',             name: 'monitoring-sensors',          component: sensorList,       meta: { title: 'Sensors' } },
+    { path: '/devices/new',         name: 'monitoring-sensor-new',       component: sensorForm,       meta: { title: 'New Sensor' } },
+    { path: '/devices/:id/edit',    name: 'monitoring-sensor-edit',      component: sensorForm,       meta: { title: 'Edit Sensor' } },
+    { path: '/devices/:id',         name: 'monitoring-sensor-detail',    component: sensorDetail,     meta: { title: 'Sensor Detail' } },
     { path: '/monitoring', name: 'monitoring', children: monitoringRoutes },
     { path: '/',           redirect: '/dashboard' },
     { path: '/:pathMatch(.*)*', name: 'not-found', component: pageNotFound, meta: { title: 'Page Not Found' } }
