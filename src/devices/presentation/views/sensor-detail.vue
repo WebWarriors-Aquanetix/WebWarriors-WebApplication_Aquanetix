@@ -1,8 +1,8 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
-import useMonitoringStore from '../../application/monitoring.store.js';
-import { Alert } from '../../domain/model/alert.entity.js';
+import useMonitoringStore from '../../../monitoring/application/monitoring.store.js';
+import { Alert } from '../../../monitoring/domain/model/alert.entity.js';
 import { onMounted, computed, toRefs, ref } from 'vue';
 
 const { t }  = useI18n();
