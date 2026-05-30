@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { ref, computed, toRefs, onMounted } from 'vue';
-import useMonitoringStore from '../../application/monitoring.store.js';
+import useMonitoringStore from '../../../monitoring/application/monitoring.store.js';
 
 const { t }  = useI18n();
 const router = useRouter();
