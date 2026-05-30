@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 const items = [
-  { label: 'option.dashboard',    to: '/monitoring/dashboard' },
+  { label: 'option.dashboard',    to: '/dashboard' },
   { label: 'option.sensors',      to: '/monitoring/sensors' },
   { label: 'option.alerts',       to: '/monitoring/alerts' },
   { label: 'option.subscription', to: '/monitoring/subscription' },
