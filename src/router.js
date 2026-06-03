@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import monitoringRoutes from './monitoring/presentation/monitoring-routes.js';
+import devicesRoutes from "./devices/presentation/devices-routes.js";
 import dashboardRoutes from "./dashboard/presentation/dashboard-routes.js";
 
 const pageNotFound = () => import('./shared/presentation/views/page-not-found.vue');
 
 const routes = [
+    { path: '/devices', name: 'devices', children: devicesRoutes },
     { path: '/dashboard', name: 'dashboard', children: dashboardRoutes },
     { path: '/monitoring', name: 'monitoring', children: monitoringRoutes },
     { path: '/subscription', name: 'subscription', children: subscriptionsRoutes},

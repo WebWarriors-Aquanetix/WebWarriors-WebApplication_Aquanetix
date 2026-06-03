@@ -138,7 +138,7 @@ const refLines = computed(() => {
         icon="pi pi-arrow-left"
         text
         class="mb-3"
-        @click="router.push('/monitoring/sensors')"
+        @click="router.push('/devices')"
     />
 
     <div v-if="!sensorsLoaded" class="flex justify-content-center py-6">

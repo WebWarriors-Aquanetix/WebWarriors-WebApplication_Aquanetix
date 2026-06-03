@@ -43,7 +43,7 @@ const filteredSensors = computed(() =>
  * Equivalente a navigateToNew() en tutorial-list.vue.
  */
 const navigateToNew = () => {
-  router.push({ name: 'monitoring-sensor-new' });
+  router.push({ name: 'devices-new' });
 };
 
 /**
@@ -52,7 +52,7 @@ const navigateToNew = () => {
  * @param {number} id
  */
 const navigateToEdit = (id) => {
-  router.push({ name: 'monitoring-sensor-edit', params: { id } });
+  router.push({ name: 'devices-edit', params: { id } });
 };
 
 /**
@@ -60,7 +60,7 @@ const navigateToEdit = (id) => {
  * @param {number} id
  */
 const navigateToDetail = (id) => {
-  router.push({ name: 'monitoring-sensor-detail', params: { id } });
+  router.push({ name: 'devices-detail', params: { id } });
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

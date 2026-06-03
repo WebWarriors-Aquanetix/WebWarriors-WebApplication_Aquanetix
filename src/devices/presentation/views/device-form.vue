@@ -18,7 +18,7 @@ const showDeleteDialog = ref(false);
 const confirmDelete = () => {
   deleteAlertsBySensorName(form.value.name);
   deleteSensor(route.params.id);
-  router.push({ name: 'monitoring-sensors' });
+  router.push({ name: 'devices-list' });
 };
 
 const isEdit = computed(() => !!route.params.id);
@@ -164,7 +164,7 @@ const saveSensor = () => {
 };
 
 const navigateBack = () => {
-  router.push({ name: 'monitoring-sensors' });
+  router.push({ name: 'devices-list' });
 };
 </script>
 
