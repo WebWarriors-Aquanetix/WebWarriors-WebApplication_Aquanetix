@@ -6,9 +6,9 @@ const { t } = useI18n();
 
 const items = [
   { label: 'option.dashboard',    to: '/dashboard' },
-  { label: 'option.sensors',      to: '/monitoring/sensors' },
+  { label: 'option.sensors',      to: '/devices' },
   { label: 'option.alerts',       to: '/monitoring/alerts' },
-  { label: 'option.subscription', to: '/monitoring/subscription' },
+  { label: 'option.subscription', to: '/subscription' },
 ];
 </script>
 

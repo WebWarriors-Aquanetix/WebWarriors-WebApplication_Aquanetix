@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { ref, computed, toRefs, onMounted } from 'vue';
-import useMonitoringStore from '../../application/monitoring.store.js';
+import useMonitoringStore from '../../../monitoring/application/monitoring.store.js';
 
 const { t }  = useI18n();
 const router = useRouter();
@@ -56,7 +56,7 @@ const confirmChange = () => {
 
   updateSubscription(updated);
   showConfirm.value = false;
-  router.push({ name: 'monitoring-subscription' });
+  router.push({ name: 'subscription-detail' });
 };
 </script>
 
@@ -65,7 +65,7 @@ const confirmChange = () => {
 
     <!-- Header -->
     <div class="flex align-items-center gap-3 mb-2">
-      <pv-button icon="pi pi-arrow-left" text @click="router.push({ name: 'monitoring-subscription' })" />
+      <pv-button icon="pi pi-arrow-left" text @click="router.push({ name: 'subscription-detail' })" />
       <div>
         <h1 class="text-3xl font-bold m-0" style="font-family:'Manrope',sans-serif;">
           {{ t('subscription.changePlan') }}
