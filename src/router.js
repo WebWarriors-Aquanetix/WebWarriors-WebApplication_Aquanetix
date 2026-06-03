@@ -4,8 +4,7 @@ import dashboardView from "./dashboard/presentation/views/dashboard-view.vue";
 import sensorList from "./devices/presentation/views/sensor-list.vue";
 import sensorForm from "./devices/presentation/views/sensor-form.vue";
 import sensorDetail from "./devices/presentation/views/sensor-detail.vue";
-import subscriptionView from "./subscriptions/presentation/views/subscription-view.vue";
-import changePlanView from "./subscriptions/presentation/views/change-plan-view.vue";
+import subscriptionsRoutes from "./subscriptions/presentation/subscriptions-routes.js";
 
 const pageNotFound = () => import('./shared/presentation/views/page-not-found.vue');
 
@@ -16,8 +15,7 @@ const routes = [
     { path: '/devices/:id/edit',    name: 'monitoring-sensor-edit',      component: sensorForm,       meta: { title: 'Edit Sensor' } },
     { path: '/devices/:id',         name: 'monitoring-sensor-detail',    component: sensorDetail,     meta: { title: 'Sensor Detail' } },
     { path: '/monitoring', name: 'monitoring', children: monitoringRoutes },
-    { path: '/subscription',        name: 'monitoring-subscription',     component: subscriptionView, meta: { title: 'Subscription' } },
-    { path: '/subscription/change',  name: 'monitoring-change-plan',      component: changePlanView,   meta: { title: 'Change Plan' } },
+    { path: '/subscription', name: 'subscription', children: subscriptionsRoutes},
     { path: '/',           redirect: '/dashboard' },
     { path: '/:pathMatch(.*)*', name: 'not-found', component: pageNotFound, meta: { title: 'Page Not Found' } }
 ];
