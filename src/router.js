@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import monitoringRoutes from './monitoring/presentation/monitoring-routes.js';
-import dashboardView from "./dashboard/presentation/views/dashboard-view.vue";
+import dashboardRoutes from "./dashboard/presentation/dashboard-routes.js";
 
 const pageNotFound = () => import('./shared/presentation/views/page-not-found.vue');
 
 const routes = [
-    { path: '/dashboard', component: dashboardView, meta: { title: 'Dashboard' } },
+    { path: '/dashboard', name: 'dashboard', children: dashboardRoutes },
     { path: '/monitoring', name: 'monitoring', children: monitoringRoutes },
     { path: '/',           redirect: '/dashboard' },
     { path: '/:pathMatch(.*)*', name: 'not-found', component: pageNotFound, meta: { title: 'Page Not Found' } }
