@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import monitoringRoutes from './monitoring/presentation/monitoring-routes.js';
 import devicesRoutes from "./devices/presentation/devices-routes.js";
 import dashboardRoutes from "./dashboard/presentation/dashboard-routes.js";
+import subscriptionsRoutes from "./subscriptions/presentation/subscriptions-routes.js";
 
 const pageNotFound = () => import('./shared/presentation/views/page-not-found.vue');
 
