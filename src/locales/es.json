@@ -5,8 +5,11 @@
     "sensors": "Dispositivos",
     "alerts": "Alertas",
     "subscription": "Suscripción",
+    "services": "Servicios",
     "profile": "Perfil",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "create": "Crear",
+    "delete": "Eliminar"
   },
   "home": {
     "title": "Bienvenido a Aquanetix",
@@ -172,6 +175,21 @@
     "cycle": "Ciclo de facturación",
     "annualSavings": "Ahorro anual",
     "confirmButton": "Confirmar cambio"
+  },
+  "services": {
+    "newPlan": "Nuevo Plan",
+    "noPlans": "Aún no hay planes de distribución. Crea uno para comenzar.",
+    "sector": "Sector",
+    "sectorPlaceholder": "Ej. Distrito Norte",
+    "waterQuality": "Calidad de Agua Aprobada",
+    "regulatoryCompliance": "Cumplimiento Regulatorio Validado",
+    "transportRoute": "Ruta de Transporte",
+    "redistributionScheduled": "Redistribución Programada",
+    "certifyQuality": "Certificar Calidad",
+    "validateCompliance": "Validar Cumplimiento",
+    "optimizeRoute": "Optimizar Ruta",
+    "schedule": "Programar",
+    "delete": "Eliminar"
   },
   "page-not-found": {
     "title": "Página no encontrada",

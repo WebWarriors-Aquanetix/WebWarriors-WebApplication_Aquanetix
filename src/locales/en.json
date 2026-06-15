@@ -5,8 +5,11 @@
     "sensors": "Devices",
     "alerts": "Alerts",
     "subscription": "Subscription",
+    "services": "Services",
     "profile": "Profile",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete"
   },
   "home": {
     "title": "Welcome to Aquanetix",
@@ -173,6 +176,21 @@
     "annualSavings": "Annual savings",
     "confirmButton": "Confirm change"
   },
+  "services": {
+  "newPlan": "New Plan",
+  "noPlans": "No distribution plans yet. Create one to get started.",
+  "sector": "Sector",
+  "sectorPlaceholder": "e.g. North District",
+  "waterQuality": "Water Quality Approved",
+  "regulatoryCompliance": "Regulatory Compliance Validated",
+  "transportRoute": "Transport Route",
+  "redistributionScheduled": "Redistribution Scheduled",
+  "certifyQuality": "Certify Quality",
+  "validateCompliance": "Validate Compliance",
+  "optimizeRoute": "Optimize Route",
+  "schedule": "Schedule",
+  "delete": "Delete"
+},
   "page-not-found": {
     "title": "Page not found",
     "content": "The path {unavailable-route} is not available.",
