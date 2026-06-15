@@ -178,7 +178,7 @@
   },
   "services": {
     "newPlan": "Nuevo Plan",
-    "noPlans": "Aún no hay planes de distribución. Crea uno para comenzar.",
+    "noPlans": "Aún no hay lotes de agua. Crea uno para comenzar.",
     "sector": "Sector",
     "sectorPlaceholder": "Ej. Distrito Norte",
     "waterQuality": "Calidad de Agua Aprobada",

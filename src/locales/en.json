@@ -178,7 +178,7 @@
   },
   "services": {
   "newPlan": "New Plan",
-  "noPlans": "No distribution plans yet. Create one to get started.",
+  "noPlans": "No water batches yet. Create one to get started.",
   "sector": "Sector",
   "sectorPlaceholder": "e.g. North District",
   "waterQuality": "Water Quality Approved",
