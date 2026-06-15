@@ -177,8 +177,8 @@
     "confirmButton": "Confirmar cambio"
   },
   "services": {
-    "newPlan": "Nuevo Plan",
-    "noPlans": "Aún no hay lotes de agua. Crea uno para comenzar.",
+    "newBatch": "Nuevo Lote",
+    "noBatches": "Aún no hay lotes de agua. Crea uno para comenzar.",
     "sector": "Sector",
     "sectorPlaceholder": "Ej. Distrito Norte",
     "waterQuality": "Calidad de Agua Aprobada",

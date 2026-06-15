@@ -28,7 +28,7 @@ const statusSeverity = (status) =>
     <div class="flex align-items-center justify-content-between mb-4">
       <h2 class="m-0">{{ t('option.services') }}</h2>
       <pv-button
-        :label="t('services.newPlan')"
+        :label="t('services.newBatch')"
         icon="pi pi-plus"
         @click="showDialog = true"
       />
@@ -45,7 +45,7 @@ const statusSeverity = (status) =>
       severity="info"
       :closable="false"
     >
-      {{ t('services.noPlans') }}
+      {{ t('services.noBatches') }}
     </pv-message>
 
     <!-- Plan cards -->
