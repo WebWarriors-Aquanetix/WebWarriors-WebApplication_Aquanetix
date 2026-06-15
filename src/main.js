@@ -8,7 +8,7 @@ import 'primeicons/primeicons.css';
 import {
     Button, Card, Checkbox, Column, ConfirmationService, ConfirmDialog,
     DataTable, Dialog, DialogService, Drawer, FileUpload, FloatLabel,
-    IconField, InputIcon, InputNumber, InputText, Menu, ProgressBar,
+    IconField, InputIcon, InputNumber, InputText, Message, Menu, ProgressBar,
     Rating, Row, Select, SelectButton, Tag, Textarea, Toast,
     ToastService, Toolbar, Tooltip
 } from 'primevue';
@@ -42,6 +42,7 @@ createApp(App)
     .component('pv-input-text',    InputText)
     .component('pv-menu',          Menu)
     .component('pv-progress-bar',  ProgressBar)
+    .component('pv-message', Message)
     .component('pv-rating',        Rating)
     .component('pv-row',           Row)
     .component('pv-tag',           Tag)

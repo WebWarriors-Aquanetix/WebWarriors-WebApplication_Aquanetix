@@ -9,6 +9,7 @@ const items = [
   { label: 'option.sensors',      to: '/devices' },
   { label: 'option.alerts',       to: '/monitoring/alerts' },
   { label: 'option.subscription', to: '/subscription' },
+  { label: 'option.services',     to: '/services' },
 ];
 </script>
 
