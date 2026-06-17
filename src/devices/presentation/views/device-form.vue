@@ -104,7 +104,7 @@ onMounted(() => {
   }
 });
 
-const saveSensor = () => {
+const saveSensor = async () => {
   const cv     = Number(form.value.currentValue) || 0;
   const min    = Number(form.value.minAlert);
   const max    = Number(form.value.maxAlert);
@@ -139,25 +139,23 @@ const saveSensor = () => {
     threshold: cv < min ? min : max,
   });
 
-  if (isEdit.value) {
-    store.updateSensor(sensor);
-
-    // Resolver alertas activas existentes del sensor
-    resolveAlertBySensorName(form.value.name);
-
-    // Si el nuevo estado requiere alerta, crearla
-    if (status === 'Alerta' || status === 'Advertencia') {
-      const severity = status === 'Alerta' ? 'Crítica' : 'Advertencia';
-      addAlert(buildAlert(form.value.name, severity, cv, min, max));
+  try {
+    if (isEdit.value) {
+      await store.updateSensor(sensor);
+      resolveAlertBySensorName(form.value.name);
+    } else {
+      const created = await store.addSensor(sensor);
+      if (created) sensor.id = created.id;
     }
 
-  } else {
-    addSensor(sensor);
-
+    // Crear alerta si el estado lo requiere (device ya existe en backend)
     if (status === 'Alerta' || status === 'Advertencia') {
       const severity = status === 'Alerta' ? 'Crítica' : 'Advertencia';
+      sensor.sensorName = form.value.name;
       addAlert(buildAlert(form.value.name, severity, cv, min, max));
     }
+  } catch (e) {
+    // el store ya registró el error en store.errors
   }
 
   navigateBack();

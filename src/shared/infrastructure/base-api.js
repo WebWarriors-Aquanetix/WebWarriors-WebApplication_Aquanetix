@@ -15,8 +15,7 @@ export class BaseApi {
         this.#http = axios.create({
             baseURL,
             headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Content-Type': 'application/json'
             }
         });
     }
