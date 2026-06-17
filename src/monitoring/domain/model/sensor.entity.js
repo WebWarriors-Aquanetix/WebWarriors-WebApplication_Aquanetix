@@ -31,7 +31,9 @@ export class Sensor {
                     recommendedRange = '',
                     minAlert = 0,
                     maxAlert = 0,
-                    history = []
+                    history = [],
+                    ownerId = 0,
+                    serialNumber = ''
                 }) {
         this.id = id;
         this.name = name;
@@ -45,5 +47,7 @@ export class Sensor {
         this.minAlert = minAlert;
         this.maxAlert = maxAlert;
         this.history = history;
+        this.ownerId = ownerId;
+        this.serialNumber = serialNumber;
     }
 }

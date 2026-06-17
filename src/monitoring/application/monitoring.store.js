@@ -3,10 +3,11 @@ import { computed, ref } from 'vue';
 import { MonitoringApi } from '../infrastructure/monitoring-api.js';
 import { SensorAssembler } from '../infrastructure/sensor.assembler.js';
 import { AlertAssembler } from '../infrastructure/alert.assembler.js';
-import { Sensor } from '../domain/model/sensor.entity.js';
-import { Alert } from '../domain/model/alert.entity.js';
 
 const monitoringApi = new MonitoringApi();
+
+// Id de suscripción por defecto a consultar (el backend expone GET /subscriptions/{id})
+const DEFAULT_SUBSCRIPTION_ID = import.meta.env.VITE_DEFAULT_SUBSCRIPTION_ID ?? '1';
 
 const useMonitoringStore = defineStore('monitoring', () => {
 
@@ -25,10 +26,19 @@ const useMonitoringStore = defineStore('monitoring', () => {
     const criticalAlertsCount = computed(() => alerts.value.filter(a => a.severity === 'Crítica' && a.status === 'Activa').length);
     const activeAlerts        = computed(() => alerts.value.filter(a => a.status === 'Activa'));
 
+    // ── Sensors (Devices) ────────────────────────────────────────────────
     function fetchSensors() {
         monitoringApi.getSensors()
-            .then(response => {
-                sensors.value = SensorAssembler.toEntitiesFromResponse(response);
+            .then(async response => {
+                const list = SensorAssembler.toEntitiesFromResponse(response);
+                // Enriquecer cada sensor con sus thresholds reales (best-effort)
+                await Promise.all(list.map(async s => {
+                    try {
+                        const tRes = await monitoringApi.getThresholds(s.id);
+                        SensorAssembler.applyThresholds(s, tRes.data);
+                    } catch (_) { /* sin thresholds: se quedan en 0 */ }
+                }));
+                sensors.value = list;
                 sensorsLoaded.value = true;
             })
             .catch(error => errors.value.push(error));
@@ -39,24 +49,67 @@ const useMonitoringStore = defineStore('monitoring', () => {
     }
 
     function addSensor(sensor) {
-        monitoringApi.createSensor(sensor)
-            .then(response => {
+        const payload = SensorAssembler.toCreateResource(sensor);
+        return monitoringApi.createSensor(payload)
+            .then(async response => {
                 const created = SensorAssembler.toEntityFromResource(response.data);
+                // Si el form trajo umbrales, crearlos en el endpoint separado
+                if (sensor.minAlert || sensor.maxAlert) {
+                    try {
+                        await monitoringApi.createThreshold(created.id, buildThresholdPayload(sensor));
+                        SensorAssembler.applyThresholds(created, [{
+                            minValue: Number(sensor.minAlert) || 0,
+                            maxValue: Number(sensor.maxAlert) || 0,
+                            unit: sensor.unit ?? '',
+                        }]);
+                    } catch (e) { errors.value.push(e); }
+                }
                 sensors.value.push(created);
+                return created;
             })
-            .catch(error => errors.value.push(error));
+            .catch(error => { errors.value.push(error); throw error; });
     }
 
     function updateSensor(sensor) {
-        monitoringApi.updateSensor(sensor)
-            .then(response => {
+        const payload = SensorAssembler.toUpdateResource(sensor);
+        return monitoringApi.updateSensor({ id: sensor.id, ...payload })
+            .then(async response => {
                 const updated = SensorAssembler.toEntityFromResource(response.data);
+                // Volver a registrar umbrales (el backend crea uno nuevo)
+                if (sensor.minAlert || sensor.maxAlert) {
+                    try {
+                        await monitoringApi.createThreshold(updated.id, buildThresholdPayload(sensor));
+                    } catch (e) { errors.value.push(e); }
+                }
+                SensorAssembler.applyThresholds(updated, [{
+                    minValue: Number(sensor.minAlert) || 0,
+                    maxValue: Number(sensor.maxAlert) || 0,
+                    unit: sensor.unit ?? '',
+                }]);
                 const index = sensors.value.findIndex(s => String(s.id) === String(updated.id));
                 if (index !== -1) sensors.value[index] = updated;
+                return updated;
             })
-            .catch(error => errors.value.push(error));
+            .catch(error => { errors.value.push(error); throw error; });
     }
 
+    /** Construye el CreateThresholdResource que espera el backend. */
+    function buildThresholdPayload(sensor) {
+        return {
+            minValue:   Number(sensor.minAlert) || 0,
+            maxValue:   Number(sensor.maxAlert) || 0,
+            unit:       sensor.unit ?? '',
+            // AlertLevel enum del backend: Warning | Critical
+            alertLevel: sensor.status === 'Alerta' ? 'Critical' : 'Warning',
+        };
+    }
+
+    function deleteSensor(id) {
+        // El backend no expone DELETE /devices; quitamos localmente para no romper la UI.
+        sensors.value = sensors.value.filter(s => String(s.id) !== String(id));
+    }
+
+    // ── Alerts ───────────────────────────────────────────────────────────
     function fetchAlerts() {
         monitoringApi.getAlerts()
             .then(response => {
@@ -66,12 +119,9 @@ const useMonitoringStore = defineStore('monitoring', () => {
             .catch(error => errors.value.push(error));
     }
 
-    /**
-     * Crea una alerta en la API y la agrega al estado local.
-     * @param {Alert} alert
-     */
     function addAlert(alert) {
-        monitoringApi.createAlert(alert)
+        const payload = SensorAssembler ? AlertAssembler.toResource(alert) : alert;
+        monitoringApi.createAlert(payload)
             .then(response => {
                 const created = AlertAssembler.toEntityFromResource(response.data);
                 alerts.value.push(created);
@@ -79,65 +129,11 @@ const useMonitoringStore = defineStore('monitoring', () => {
             .catch(error => errors.value.push(error));
     }
 
-    function fetchSubscription() {
-        monitoringApi.getSubscription()
-            .then(response => {
-                const data = response.data;
-                subscription.value = Array.isArray(data) ? data[0] : data;
-                subscriptionLoaded.value = true;
-            })
-            .catch(error => errors.value.push(error));
-    }
-
-    function fetchPlans() {
-        monitoringApi.getPlans()
-            .then(response => {
-                plans.value = Array.isArray(response.data) ? response.data : [];
-                plansLoaded.value = true;
-            })
-            .catch(error => errors.value.push(error));
-    }
-
-    /**
-     * Actualiza la suscripción activa en la API y en el estado local.
-     * @param {Object} updated - Objeto subscription actualizado
-     */
-    function updateSubscription(updated) {
-        // MockAPI returns id as part of the object; fall back to "1" if missing
-        const id = subscription.value?.id ?? '1';
-        monitoringApi.updateSubscription(id, updated)
-            .then(() => {
-                subscription.value = { ...updated, id };
-            })
-            .catch(() => {
-                // Even if API call fails, update local state so UI reflects change
-                subscription.value = { ...updated, id };
-            });
-    }
-
-
-    /**
-     * Elimina un sensor de la API y lo quita del estado local.
-     */
-    function deleteSensor(id) {
-        monitoringApi.deleteSensor(id)
-            .then(() => {
-                sensors.value = sensors.value.filter(s => String(s.id) !== String(id));
-            })
-            .catch(error => errors.value.push(error));
-    }
-
-
-    /**
-     * Marca como resuelta la alerta activa de un sensor (por sensorName).
-     */
     function resolveAlertBySensorName(sensorName) {
-        const active = alerts.value.find(
-            a => a.sensorName === sensorName && a.status === 'Activa'
-        );
+        const active = alerts.value.find(a => a.sensorName === sensorName && a.status === 'Activa');
         if (!active) return;
         const resolved = { ...active, status: 'Resuelta' };
-        monitoringApi.updateAlert(resolved)
+        monitoringApi.updateAlert(AlertAssembler.toResource(resolved))
             .then(() => {
                 const idx = alerts.value.findIndex(a => a.id === active.id);
                 if (idx !== -1) alerts.value[idx] = { ...alerts.value[idx], status: 'Resuelta' };
@@ -145,18 +141,38 @@ const useMonitoringStore = defineStore('monitoring', () => {
             .catch(error => errors.value.push(error));
     }
 
-    /**
-     * Elimina todas las alertas activas de un sensor (por sensorName).
-     */
     function deleteAlertsBySensorName(sensorName) {
-        const toDelete = alerts.value.filter(a => a.sensorName === sensorName);
-        toDelete.forEach(alert => {
-            monitoringApi.deleteAlert(alert.id)
-                .then(() => {
-                    alerts.value = alerts.value.filter(a => a.id !== alert.id);
-                })
-                .catch(error => errors.value.push(error));
-        });
+        // El backend no expone DELETE /alerts; quitamos localmente.
+        alerts.value = alerts.value.filter(a => a.sensorName !== sensorName);
+    }
+
+    // ── Subscription ─────────────────────────────────────────────────────
+    function fetchSubscription() {
+        monitoringApi.getSubscriptionById(DEFAULT_SUBSCRIPTION_ID)
+            .then(response => {
+                subscription.value = response.data;
+                subscriptionLoaded.value = true;
+            })
+            .catch(error => {
+                errors.value.push(error);
+                subscriptionLoaded.value = true; // evita spinner infinito
+            });
+    }
+
+    function fetchPlans() {
+        // El backend no expone catálogo de planes; usamos los planes conocidos del dominio.
+        plans.value = [
+            { id: 'basic',      name: 'Basic Monitoring Plan' },
+            { id: 'smartcity',  name: 'Smart City Plan' },
+            { id: 'industrial', name: 'Industrial Plan' },
+        ];
+        plansLoaded.value = true;
+    }
+
+    function updateSubscription(updated) {
+        const id = subscription.value?.id ?? DEFAULT_SUBSCRIPTION_ID;
+        // El backend solo soporta cancel/renew; reflejamos el cambio localmente.
+        subscription.value = { ...subscription.value, ...updated, id };
     }
 
     return {
