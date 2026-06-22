@@ -2,6 +2,9 @@
 import LanguageSwitcher from './language-switcher.vue';
 import { useI18n } from 'vue-i18n';
 
+// To import when IAM is implemented
+import AuthenticationSection from "../../../iam/presentation/components/authentication-section.vue";
+
 const { t } = useI18n();
 
 const items = [
@@ -40,6 +43,7 @@ const items = [
             </router-link>
           </pv-button>
         </div>
+        <authentication-section />
         <language-switcher />
       </template>
     </pv-toolbar>
