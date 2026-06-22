@@ -1,6 +1,7 @@
 <script setup>
 import LanguageSwitcher from './language-switcher.vue';
 import { useI18n } from 'vue-i18n';
+import AuthenticationSection from "../../../iam/presentation/components/authentication-section.vue";
 
 const { t } = useI18n();
 
@@ -40,7 +41,8 @@ const items = [
             </router-link>
           </pv-button>
         </div>
-        <language-switcher />
+        <authentication-section/>
+        <language-switcher/>
       </template>
     </pv-toolbar>
   </div>
