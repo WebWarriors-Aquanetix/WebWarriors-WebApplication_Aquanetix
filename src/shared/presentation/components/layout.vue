@@ -2,12 +2,16 @@
 import LanguageSwitcher from './language-switcher.vue';
 import { useI18n } from 'vue-i18n';
 
+// To import when IAM is implemented
+import AuthenticationSection from "../../../iam/presentation/components/authentication-section.vue";
+
 const { t } = useI18n();
 
 const items = [
   { label: 'option.dashboard',    to: '/dashboard' },
   { label: 'option.sensors',      to: '/devices' },
   { label: 'option.alerts',       to: '/monitoring/alerts' },
+  { label: 'option.waterBatches',  to: '/service-design' },   // NUEVO
   { label: 'option.subscription', to: '/subscription' },
 ];
 </script>
@@ -40,6 +44,7 @@ const items = [
             </router-link>
           </pv-button>
         </div>
+        <authentication-section />
         <language-switcher />
       </template>
     </pv-toolbar>

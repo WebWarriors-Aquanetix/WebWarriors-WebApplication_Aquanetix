@@ -39,6 +39,33 @@
     "verTodos": "View all",
     "requiredAttendance": "Required attention"
   },
+  "waterBatches": {
+    "title": "Water Batches",
+    "subtitle": "Management and certification of water batches in the Service Design context",
+    "addBatch": "New batch",
+    "searchPlaceholder": "Search by code, source or sector…",
+    "empty": "No water batches registered.",
+    "certificationCode": "Certification code",
+    "destinationSector": "Destination sector",
+    "volume": "Volume",
+    "source": "Source",
+    "delivery": "Delivery",
+    "status": "Status",
+    "actions": "Actions",
+    "newTitle": "New water batch",
+    "editTitle": "Edit water batch",
+    "selectSource": "Select a source",
+    "save": "Save",
+    "delete": "Delete",
+    "confirmDeleteTitle": "Delete batch",
+    "confirmDeleteBody": "Are you sure you want to delete this water batch? This action cannot be undone.",
+    "errCertification": "Certification code is required.",
+    "errSector": "Destination sector is required.",
+    "errVolume": "Volume must be greater than zero.",
+    "errSource": "Select a source.",
+    "errSave": "Could not save the batch. Please try again."
+  },
+
   "sensors": {
     "title": "Devices",
     "subtitle": "Monitor the status of all your devices in real time.",
