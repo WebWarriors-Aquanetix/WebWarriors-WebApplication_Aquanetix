@@ -58,7 +58,11 @@ const doDelete   = async () => {
         </h1>
         <p class="text-color-secondary mt-1 mb-0">{{ t('waterBatches.subtitle') }}</p>
       </div>
-      <pv-button :label="t('waterBatches.addBatch')" icon="pi pi-plus" @click="goNew" />
+      <div class="flex gap-2">
+        <pv-button :label="t('destinations.manage')" icon="pi pi-map-marker" severity="secondary"
+                   @click="router.push({ name: 'destinations-manage' })" />
+        <pv-button :label="t('waterBatches.addBatch')" icon="pi pi-plus" @click="goNew" />
+      </div>
     </div>
 
     <!-- Search -->

@@ -6,11 +6,13 @@
  */
 const waterBatchList = () => import('./views/water-batch-list.vue');
 const waterBatchForm = () => import('./views/water-batch-form.vue');
+const destinationManage = () => import('./views/destination-manage-view.vue');
 
 const serviceDesignRoutes = [
     { path: '',         name: 'water-batches-list',  component: waterBatchList, meta: { title: 'Water Batches' } },
     { path: 'new',      name: 'water-batches-new',   component: waterBatchForm, meta: { title: 'New Water Batch' } },
     { path: ':id/edit', name: 'water-batches-edit',  component: waterBatchForm, meta: { title: 'Edit Water Batch' } },
+    { path: 'destinations', name: 'destinations-manage', component: destinationManage, meta: { title: 'Manage Destinations' } },
 ];
 
 export default serviceDesignRoutes;
