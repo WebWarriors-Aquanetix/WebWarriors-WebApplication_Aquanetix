@@ -199,6 +199,28 @@
     "annualSavings": "Ahorro anual",
     "confirmButton": "Confirmar cambio"
   },
+  "destinations": {
+    "title": "Lugares de destino",
+    "subtitle": "Registra y administra los lugares donde se monitorea el agua",
+    "manage": "Gestionar lugares",
+    "addTitle": "Registrar nuevo lugar",
+    "name": "Nombre",
+    "address": "Dirección",
+    "addressPlaceholder": "Av. Ejemplo 123, distrito",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Detalles del sitio (opcional)",
+    "add": "Registrar",
+    "delete": "Eliminar",
+    "actions": "Acciones",
+    "empty": "No hay lugares registrados todavía.",
+    "confirmDeleteTitle": "Eliminar lugar",
+    "confirmDeleteBody": "¿Seguro que deseas eliminar este lugar de destino?",
+    "errName": "El nombre es obligatorio.",
+    "errDuplicate": "Ya existe un lugar con ese nombre.",
+    "errInUse": "No se puede eliminar: hay lotes o dispositivos usando este lugar.",
+    "errSave": "No se pudo registrar el lugar. Intenta de nuevo.",
+    "errDeleteGeneric": "No se pudo eliminar el lugar."
+  },
   "page-not-found": {
     "title": "Página no encontrada",
     "content": "La ruta {unavailable-route} no está disponible.",
