@@ -11,6 +11,7 @@ const items = [
   { label: 'option.dashboard',    to: '/dashboard' },
   { label: 'option.sensors',      to: '/devices' },
   { label: 'option.alerts',       to: '/monitoring/alerts' },
+  { label: 'option.waterBatches',  to: '/service-design' },   // NUEVO
   { label: 'option.subscription', to: '/subscription' },
 ];
 </script>
