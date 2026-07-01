@@ -6,7 +6,6 @@ import { AlertAssembler } from '../infrastructure/alert.assembler.js';
 
 const monitoringApi = new MonitoringApi();
 
-// Id de suscripción por defecto a consultar (el backend expone GET /subscriptions/{id})
 const DEFAULT_SUBSCRIPTION_ID = import.meta.env.VITE_DEFAULT_SUBSCRIPTION_ID ?? '1';
 
 const useMonitoringStore = defineStore('monitoring', () => {
@@ -26,7 +25,6 @@ const useMonitoringStore = defineStore('monitoring', () => {
     const criticalAlertsCount = computed(() => alerts.value.filter(a => a.severity === 'Crítica' && a.status === 'Activa').length);
     const activeAlerts        = computed(() => alerts.value.filter(a => a.status === 'Activa'));
 
-    // ── Sensors (Devices) ────────────────────────────────────────────────
     function fetchSensors() {
         monitoringApi.getSensors()
             .then(async response => {
@@ -93,7 +91,6 @@ const useMonitoringStore = defineStore('monitoring', () => {
             .catch(error => { errors.value.push(error); throw error; });
     }
 
-    /** Construye el CreateThresholdResource que espera el backend. */
     function buildThresholdPayload(sensor) {
         return {
             minValue:   Number(sensor.minAlert) || 0,
@@ -105,11 +102,14 @@ const useMonitoringStore = defineStore('monitoring', () => {
     }
 
     function deleteSensor(id) {
-        // El backend no expone DELETE /devices; quitamos localmente para no romper la UI.
-        sensors.value = sensors.value.filter(s => String(s.id) !== String(id));
+        return monitoringApi.deleteSensor(id)
+            .then(() => {
+                sensors.value = sensors.value.filter(s => String(s.id) !== String(id));
+                fetchAlerts(); // refresca alertas para reflejar la cascada del backend
+            })
+            .catch(error => { errors.value.push(error); throw error; });
     }
 
-    // ── Alerts ───────────────────────────────────────────────────────────
     function fetchAlerts() {
         monitoringApi.getAlerts()
             .then(response => {
