@@ -2,6 +2,7 @@ import {BaseEndpoint} from "../../shared/infrastructure/base-endpoint.js";
 import {BaseApi} from "../../shared/infrastructure/base-api.js";
 const usersEndpointPath   = import.meta.env.VITE_USERS_ENDPOINT_PATH;
 const signUpEndpointPath = import.meta.env.VITE_SIGNUP_ENDPOINT_PATH;
+const signInEndpointPath = import.meta.env.VITE_SIGNIN_ENDPOINT_PATH;
 
 /**
  * Infrastructure gateway for IAM bounded-context endpoints.
@@ -12,12 +13,22 @@ const signUpEndpointPath = import.meta.env.VITE_SIGNUP_ENDPOINT_PATH;
 export class IamApi extends BaseApi {
     #usersEndpoint;
     #signUpEndpoint;
-
+    #signInEndpoint;
     /** Creates endpoint clients for sign-in, sign-up, and user listing. */
     constructor() {
         super();
         this.#usersEndpoint = new BaseEndpoint(this, usersEndpointPath);
         this.#signUpEndpoint = new BaseEndpoint(this, signUpEndpointPath);
+        this.#signInEndpoint = new BaseEndpoint(this, signInEndpointPath);
+    }
+
+    /**
+     * Sends a sign-in command to the authentication endpoint.
+     * @param {import('../domain/sign-in.command.js').SignInCommand} signInRequest - Sign-in command.
+     * @returns {Promise<import('axios').AxiosResponse<Object>>} HTTP response with authentication payload.
+     */
+    signIn(signInRequest) {
+        return this.#signInEndpoint.create(signInRequest);
     }
 
     /**
