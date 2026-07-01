@@ -4,6 +4,7 @@
     "dashboard": "Dashboard",
     "sensors": "Devices",
     "alerts": "Alerts",
+    "waterBatches": "Water Batches",
     "subscription": "Subscription",
     "profile": "Profile",
     "cancel": "Cancel"
@@ -40,6 +41,7 @@
     "requiredAttendance": "Required attention"
   },
   "waterBatches": {
+    "waterBatches": "Water Batches",
     "title": "Water Batches",
     "subtitle": "Management and certification of water batches in the Service Design context",
     "addBatch": "New batch",
@@ -63,7 +65,13 @@
     "errSector": "Destination sector is required.",
     "errVolume": "Volume must be greater than zero.",
     "errSource": "Select a source.",
-    "errSave": "Could not save the batch. Please try again."
+    "errSave": "Could not save the batch. Please try again.",
+    "destination": "Destination",
+    "selectDestination": "Select a destination",
+    "noDestinations": "No destinations registered. Create one in 'Manage sites'.",
+    "errDestination": "You must select a destination.",
+    "sourceOther": "Other",
+    "sourceOtherPlaceholder": "Type the source (river, lake, well…)"
   },
   "sensors": {
     "title": "Devices",
@@ -106,7 +114,10 @@
     "unitOfMeasure": "Unit of measure",
     "autoFilled": "Auto-filled when you select a type.",
     "historyGenNote": "A history of 7 readings will be generated automatically based on this value.",
-    "alertAutoNote": "If the value is out of range, an alert will be created automatically."
+    "alertAutoNote": "If the value is out of range, an alert will be created automatically.",
+    "selectDestination": "Select a destination",
+    "noDestinations": "No destinations registered. Create one in 'Manage sites'.",
+    "errDestinationRequired": "You must select a destination for the device."
   },
   "sensorDetail": {
     "title": "Device detail",

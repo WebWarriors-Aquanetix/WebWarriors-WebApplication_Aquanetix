@@ -33,7 +33,8 @@ export class Sensor {
                     maxAlert = 0,
                     history = [],
                     ownerId = 0,
-                    serialNumber = ''
+                    serialNumber = '',
+                    destinationId = null
                 }) {
         this.id = id;
         this.name = name;
@@ -49,5 +50,6 @@ export class Sensor {
         this.history = history;
         this.ownerId = ownerId;
         this.serialNumber = serialNumber;
+        this.destinationId = destinationId;
     }
 }

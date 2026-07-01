@@ -72,6 +72,7 @@ export class SensorAssembler {
             // Si el backend trae name/location vacíos, caemos al serialNumber como etiqueta
             name:             resource.name && resource.name.length ? resource.name : (resource.serialNumber ?? `Device ${resource.id}`),
             location:         resource.location ?? '',
+            destinationId:    resource.destinationId ?? null,
             type,
             currentValue:     cv,
             unit:             resource.unit ?? '',
@@ -126,6 +127,7 @@ export class SensorAssembler {
             deviceType:   deviceTypeToBackend(sensor.type),
             name:         sensor.name ?? '',
             location:     sensor.location ?? '',
+            destinationId: sensor.destinationId ?? null,
             unit:         sensor.unit ?? '',
             currentValue: Number(sensor.currentValue) || 0,
         };
@@ -140,6 +142,7 @@ export class SensorAssembler {
             lastTelemetrySync: new Date().toISOString(),
             name:              sensor.name ?? '',
             location:          sensor.location ?? '',
+            destinationId:     sensor.destinationId ?? null,
             unit:              sensor.unit ?? '',
             currentValue:      Number(sensor.currentValue) || 0,
         };
