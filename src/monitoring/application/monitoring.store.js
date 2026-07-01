@@ -6,7 +6,6 @@ import { AlertAssembler } from '../infrastructure/alert.assembler.js';
 
 const monitoringApi = new MonitoringApi();
 
-// Id de suscripción por defecto a consultar (el backend expone GET /subscriptions/{id})
 const DEFAULT_SUBSCRIPTION_ID = import.meta.env.VITE_DEFAULT_SUBSCRIPTION_ID ?? '1';
 
 const useMonitoringStore = defineStore('monitoring', () => {
@@ -26,17 +25,15 @@ const useMonitoringStore = defineStore('monitoring', () => {
     const criticalAlertsCount = computed(() => alerts.value.filter(a => a.severity === 'Crítica' && a.status === 'Activa').length);
     const activeAlerts        = computed(() => alerts.value.filter(a => a.status === 'Activa'));
 
-    // ── Sensors (Devices) ────────────────────────────────────────────────
     function fetchSensors() {
         monitoringApi.getSensors()
             .then(async response => {
                 const list = SensorAssembler.toEntitiesFromResponse(response);
-                // Enriquecer cada sensor con sus thresholds reales (best-effort)
                 await Promise.all(list.map(async s => {
                     try {
                         const tRes = await monitoringApi.getThresholds(s.id);
                         SensorAssembler.applyThresholds(s, tRes.data);
-                    } catch (_) { /* sin thresholds: se quedan en 0 */ }
+                    } catch (_) { }
                 }));
                 sensors.value = list;
                 sensorsLoaded.value = true;
@@ -105,11 +102,14 @@ const useMonitoringStore = defineStore('monitoring', () => {
     }
 
     function deleteSensor(id) {
-        // El backend no expone DELETE /devices; quitamos localmente para no romper la UI.
-        sensors.value = sensors.value.filter(s => String(s.id) !== String(id));
+        return monitoringApi.deleteSensor(id)
+            .then(() => {
+                sensors.value = sensors.value.filter(s => String(s.id) !== String(id));
+                fetchAlerts();
+            })
+            .catch(error => { errors.value.push(error); throw error; });
     }
 
-    // ── Alerts ───────────────────────────────────────────────────────────
     function fetchAlerts() {
         monitoringApi.getAlerts()
             .then(response => {
@@ -142,11 +142,9 @@ const useMonitoringStore = defineStore('monitoring', () => {
     }
 
     function deleteAlertsBySensorName(sensorName) {
-        // El backend no expone DELETE /alerts; quitamos localmente.
         alerts.value = alerts.value.filter(a => a.sensorName !== sensorName);
     }
 
-    // ── Subscription ─────────────────────────────────────────────────────
     function fetchSubscription() {
         monitoringApi.getSubscriptionById(DEFAULT_SUBSCRIPTION_ID)
             .then(response => {
