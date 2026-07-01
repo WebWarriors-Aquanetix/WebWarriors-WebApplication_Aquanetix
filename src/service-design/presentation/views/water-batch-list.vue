@@ -3,16 +3,20 @@ import { onMounted, computed, ref, toRefs } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import useServiceDesignStore from '../../application/service-design.store.js';
+import useDestinationStore from '../../application/destination.store.js';
 
 const { t }  = useI18n();
 const router = useRouter();
 const store  = useServiceDesignStore();
+const destinationStore = useDestinationStore();
+const { destinations } = toRefs(destinationStore);
 
 const { waterBatches, waterBatchesLoaded } = toRefs(store);
 const { fetchWaterBatches, deleteWaterBatch } = store;
 
 onMounted(() => {
   if (!store.waterBatchesLoaded) fetchWaterBatches();
+  if (!destinationStore.destinationsLoaded) destinationStore.fetchDestinations();
 });
 
 const search = ref('');
@@ -22,7 +26,7 @@ const filteredBatches = computed(() => {
   return waterBatches.value.filter(b =>
       (b.certificationCode ?? '').toLowerCase().includes(q) ||
       (b.source ?? '').toLowerCase().includes(q) ||
-      String(b.destinationSectorId ?? '').includes(q));
+      destinationName(b.destinationSectorId).toLowerCase().includes(q));
 });
 
 const statusSeverity = (status) => ({
@@ -30,6 +34,11 @@ const statusSeverity = (status) => ({
   Entregado: 'success',
   Cancelado: 'danger',
 }[status] ?? 'info');
+
+const destinationName = (id) => {
+  const d = destinations.value.find(x => String(x.id) === String(id));
+  return d ? d.name : (id ?? '—');
+};
 
 const formatDate = (iso) => {
   if (!iso) return '—';
@@ -91,7 +100,9 @@ const doDelete   = async () => {
       </template>
 
       <pv-column field="certificationCode" :header="t('waterBatches.certificationCode')" sortable />
-      <pv-column field="destinationSectorId" :header="t('waterBatches.destinationSector')" sortable />
+      <pv-column :header="t('waterBatches.destination')" sortable field="destinationSectorId">
+        <template #body="{ data }">{{ destinationName(data.destinationSectorId) }}</template>
+      </pv-column>
       <pv-column :header="t('waterBatches.volume')" sortable field="volumeLiters">
         <template #body="{ data }">{{ Number(data.volumeLiters).toLocaleString('es-PE') }} L</template>
       </pv-column>

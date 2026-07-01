@@ -3,22 +3,26 @@ import { onMounted, ref, computed, toRefs } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import useServiceDesignStore from '../../application/service-design.store.js';
+import useDestinationStore from '../../application/destination.store.js';
 import { KNOWN_SOURCES } from '../../infrastructure/water-batch.assembler.js';
 
 const { t }  = useI18n();
 const route  = useRoute();
 const router = useRouter();
 const store  = useServiceDesignStore();
+const destinationStore = useDestinationStore();
 
 const { errors } = toRefs(store);
 const { fetchWaterBatches, getWaterBatchById, addWaterBatch, updateWaterBatch } = store;
+const { destinations } = toRefs(destinationStore);
+const { fetchDestinations } = destinationStore;
 
 const isEdit  = computed(() => route.name === 'water-batches-edit');
 const saving  = ref(false);
 
 const form = ref({
   certificationCode:   '',
-  destinationSectorId: null,
+  destinationSectorId: null,  // holds the chosen Destination id (FK)
   volumeLiters:        null,
   deliveryTimestamp:   new Date().toISOString().slice(0, 16), // for datetime-local input
   status:              'Pendiente',
@@ -26,12 +30,26 @@ const form = ref({
 });
 
 const statusOptions = ['Pendiente', 'Entregado', 'Cancelado'];
-const sourceOptions = KNOWN_SOURCES;
+
+// Source options: known catalog + "Otro" sentinel that reveals a free-text field.
+const OTHER_SOURCE = '__other__';
+const sourceSelect = ref('');     // what the dropdown shows
+const sourceOther  = ref('');     // free text when "Otro" is chosen
+const sourceOptions = computed(() => [
+  ...KNOWN_SOURCES.map(s => ({ label: s, value: s })),
+  { label: t('waterBatches.sourceOther'), value: OTHER_SOURCE },
+]);
+const isOtherSource = computed(() => sourceSelect.value === OTHER_SOURCE);
+
+// Destination dropdown options (id + readable name) from the real backend list.
+const destinationOptions = computed(() =>
+  destinations.value.map(d => ({ label: d.name, value: d.id })));
 
 onMounted(async () => {
+  if (!destinationStore.destinationsLoaded) fetchDestinations();
+
   if (isEdit.value) {
     if (!store.waterBatchesLoaded) fetchWaterBatches();
-    // small wait so the list resolves if user landed directly on the edit URL
     const hydrate = () => {
       const b = getWaterBatchById(route.params.id);
       if (b) {
@@ -43,6 +61,13 @@ onMounted(async () => {
           status:              b.status,
           source:              b.source,
         };
+        // Reflect the stored source in the dropdown / free-text pair.
+        if (b.source && !KNOWN_SOURCES.includes(b.source)) {
+          sourceSelect.value = OTHER_SOURCE;
+          sourceOther.value  = b.source;
+        } else {
+          sourceSelect.value = b.source || '';
+        }
       }
     };
     hydrate();
@@ -52,11 +77,15 @@ onMounted(async () => {
 
 const errorMsg = ref('');
 
+// Resolve the final source string from the dropdown + free-text pair.
+const resolvedSource = () =>
+  isOtherSource.value ? sourceOther.value.trim() : sourceSelect.value;
+
 const validate = () => {
   if (!form.value.certificationCode.trim()) return t('waterBatches.errCertification');
-  if (!form.value.destinationSectorId)      return t('waterBatches.errSector');
+  if (!form.value.destinationSectorId)      return t('waterBatches.errDestination');
   if (!form.value.volumeLiters || form.value.volumeLiters <= 0) return t('waterBatches.errVolume');
-  if (!form.value.source)                   return t('waterBatches.errSource');
+  if (!resolvedSource())                    return t('waterBatches.errSource');
   return '';
 };
 
@@ -64,7 +93,6 @@ const onSubmit = async () => {
   errorMsg.value = validate();
   if (errorMsg.value) return;
 
-  // datetime-local has no timezone; convert to a full ISO string for the backend
   const isoDelivery = form.value.deliveryTimestamp
       ? new Date(form.value.deliveryTimestamp).toISOString()
       : new Date().toISOString();
@@ -72,11 +100,11 @@ const onSubmit = async () => {
   const payload = {
     id:                  isEdit.value ? Number(route.params.id) : null,
     certificationCode:   form.value.certificationCode.trim(),
-    destinationSectorId: Number(form.value.destinationSectorId),
+    destinationSectorId: Number(form.value.destinationSectorId), // FK to Destination
     volumeLiters:        Number(form.value.volumeLiters),
     deliveryTimestamp:   isoDelivery,
     status:              form.value.status,
-    source:              form.value.source,
+    source:              resolvedSource(),
   };
 
   saving.value = true;
@@ -114,9 +142,15 @@ const onCancel = () => router.push({ name: 'water-batches-list' });
         <pv-input-text v-model="form.certificationCode" placeholder="CERT-2026-0001" />
       </div>
 
+      <!-- Destination: dropdown of registered destinations (required) -->
       <div class="flex flex-column gap-1">
-        <label class="font-semibold text-sm">{{ t('waterBatches.destinationSector') }}</label>
-        <pv-input-number v-model="form.destinationSectorId" :use-grouping="false" :min="1" />
+        <label class="font-semibold text-sm">{{ t('waterBatches.destination') }}</label>
+        <pv-select v-model="form.destinationSectorId" :options="destinationOptions"
+                   option-label="label" option-value="value"
+                   :placeholder="t('waterBatches.selectDestination')" filter />
+        <small v-if="destinationOptions.length === 0" class="text-color-secondary">
+          {{ t('waterBatches.noDestinations') }}
+        </small>
       </div>
 
       <div class="flex flex-column gap-1">
@@ -124,9 +158,14 @@ const onCancel = () => router.push({ name: 'water-batches-list' });
         <pv-input-number v-model="form.volumeLiters" :min="0" :max-fraction-digits="2" suffix=" L" />
       </div>
 
+      <!-- Source: known catalog + "Otro" free text -->
       <div class="flex flex-column gap-1">
         <label class="font-semibold text-sm">{{ t('waterBatches.source') }}</label>
-        <pv-select v-model="form.source" :options="sourceOptions" :placeholder="t('waterBatches.selectSource')" />
+        <pv-select v-model="sourceSelect" :options="sourceOptions"
+                   option-label="label" option-value="value"
+                   :placeholder="t('waterBatches.selectSource')" />
+        <pv-input-text v-if="isOtherSource" v-model="sourceOther"
+                       class="mt-2" :placeholder="t('waterBatches.sourceOtherPlaceholder')" />
       </div>
 
       <div class="flex flex-column gap-1">
