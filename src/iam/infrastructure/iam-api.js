@@ -11,6 +11,7 @@ const signUpEndpointPath = import.meta.env.VITE_SIGNUP_ENDPOINT_PATH;
  */
 export class IamApi extends BaseApi {
     #usersEndpoint;
+    #signUpEndpoint;
 
     /** Creates endpoint clients for sign-in, sign-up, and user listing. */
     constructor() {
@@ -27,7 +28,7 @@ export class IamApi extends BaseApi {
     signUp(signUpRequest) {
         return this.#signUpEndpoint.create(signUpRequest);
     }
-    
+
     /**
      * Retrieves users visible to the IAM context.
      * @returns {Promise<import('axios').AxiosResponse<Array<Object>|Object>>} HTTP response with user resources.
