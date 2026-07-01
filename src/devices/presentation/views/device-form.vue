@@ -2,18 +2,25 @@
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import useMonitoringStore from '../../../monitoring/application/monitoring.store.js';
+import useDestinationStore from '../../../service-design/application/destination.store.js';
 import { Sensor } from '../../../monitoring/domain/model/sensor.entity.js';
 import { Alert } from '../../../monitoring/domain/model/alert.entity.js';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, toRefs } from 'vue';
 
 const { t }  = useI18n();
 const route  = useRoute();
 const router = useRouter();
 const store  = useMonitoringStore();
+const destinationStore = useDestinationStore();
 const { errors, addSensor, addAlert, fetchSensors, deleteSensor,
   resolveAlertBySensorName, deleteAlertsBySensorName } = store;
+const { destinations } = toRefs(destinationStore);
+
+const destinationOptions = computed(() =>
+  destinations.value.map(d => ({ label: d.name, value: d.id })));
 
 const showDeleteDialog = ref(false);
+const formError = ref('');
 
 const confirmDelete = () => {
   deleteAlertsBySensorName(form.value.name);
@@ -26,6 +33,7 @@ const isEdit = computed(() => !!route.params.id);
 const form = ref({
   name:         '',
   location:     '',
+  destinationId: null,
   type:         '',
   unit:         '',
   currentValue: null,
@@ -84,6 +92,7 @@ const calcStatus = (value, min, max) => {
 };
 
 onMounted(() => {
+  if (!destinationStore.destinationsLoaded) destinationStore.fetchDestinations();
   if (isEdit.value) {
     if (!store.sensorsLoaded) fetchSensors();
     const tryFill = () => {
@@ -91,6 +100,7 @@ onMounted(() => {
       if (sensor) {
         form.value.name         = sensor.name;
         form.value.location     = sensor.location;
+        form.value.destinationId = sensor.destinationId ?? null;
         form.value.type         = sensor.type;
         form.value.unit         = sensor.unit;
         form.value.currentValue = sensor.currentValue;
@@ -105,15 +115,21 @@ onMounted(() => {
 });
 
 const saveSensor = async () => {
+  formError.value = '';
   const cv     = Number(form.value.currentValue) || 0;
   const min    = Number(form.value.minAlert);
   const max    = Number(form.value.maxAlert);
   const status = calcStatus(cv, min, max);
 
+  // Location = the chosen destination's name (readable), destinationId = the FK.
+  const chosenDest = destinations.value.find(d => String(d.id) === String(form.value.destinationId));
+  const destName   = chosenDest ? chosenDest.name : (form.value.location ?? '');
+
   const sensor = new Sensor({
     id:               isEdit.value ? route.params.id : null,
     name:             form.value.name,
-    location:         form.value.location,
+    location:         destName,
+    destinationId:    form.value.destinationId,
     type:             form.value.type,
     unit:             form.value.unit,
     currentValue:     cv,
@@ -127,7 +143,7 @@ const saveSensor = async () => {
 
   const buildAlert = (sensorName, severity, cv, min, max) => new Alert({
     sensorName,
-    location:  form.value.location,
+    location:  destName,
     type:      form.value.type,
     severity,
     message:   severity === 'Crítica'
@@ -140,6 +156,10 @@ const saveSensor = async () => {
   });
 
   try {
+    if (!form.value.destinationId) {
+      formError.value = t('sensors.errDestinationRequired');
+      return;
+    }
     if (isEdit.value) {
       await store.updateSensor(sensor);
       resolveAlertBySensorName(form.value.name);
@@ -174,6 +194,11 @@ const navigateBack = () => {
 
     <form @submit.prevent="saveSensor">
 
+      <div v-if="formError" class="mb-3 p-3"
+           style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;">
+        <i class="pi pi-exclamation-circle mr-2"></i>{{ formError }}
+      </div>
+
       <div class="field mb-3">
         <label for="sensor-name" class="font-medium mb-1 block">
           {{ t('sensors.name') }} <span style="color: #ef4444;">*</span>
@@ -185,7 +210,13 @@ const navigateBack = () => {
         <label for="sensor-location" class="font-medium mb-1 block">
           {{ t('sensors.location') }} <span style="color: #ef4444;">*</span>
         </label>
-        <pv-input-text id="sensor-location" v-model="form.location" class="w-full" required placeholder="Ej: Planta Norte" />
+        <pv-select
+            id="sensor-location" v-model="form.destinationId"
+            :options="destinationOptions" option-label="label" option-value="value"
+            :placeholder="t('sensors.selectDestination')" class="w-full" filter />
+        <small v-if="destinationOptions.length === 0" class="text-color-secondary">
+          {{ t('sensors.noDestinations') }}
+        </small>
       </div>
 
       <div class="field mb-3">

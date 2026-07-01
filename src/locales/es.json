@@ -41,6 +41,7 @@
     "requiredAttendance": "Atención requerida"
   },
   "waterBatches": {
+    "waterBatches": "Lotes de agua",
     "title": "Lotes de agua",
     "subtitle": "Gestión y certificación de lotes de agua del contexto Service Design",
     "addBatch": "Nuevo lote",
@@ -64,7 +65,13 @@
     "errSector": "El sector destino es obligatorio.",
     "errVolume": "El volumen debe ser mayor que cero.",
     "errSource": "Selecciona una fuente.",
-    "errSave": "No se pudo guardar el lote. Intenta de nuevo."
+    "errSave": "No se pudo guardar el lote. Intenta de nuevo.",
+    "destination": "Destino",
+    "selectDestination": "Selecciona un destino",
+    "noDestinations": "No hay destinos registrados. Crea uno en 'Gestionar lugares'.",
+    "errDestination": "Debes seleccionar un destino.",
+    "sourceOther": "Otro",
+    "sourceOtherPlaceholder": "Escribe el origen (río, lago, pozo…)"
   },
   "sensors": {
     "title": "Dispositivos",
@@ -107,7 +114,10 @@
     "unitOfMeasure": "Unidad de medida",
     "autoFilled": "Se autocompleta al elegir el tipo.",
     "historyGenNote": "Se generará un historial de 7 lecturas automáticamente basado en este valor.",
-    "alertAutoNote": "Si el valor está fuera del rango, se creará una alerta automáticamente."
+    "alertAutoNote": "Si el valor está fuera del rango, se creará una alerta automáticamente.",
+    "selectDestination": "Selecciona un destino",
+    "noDestinations": "No hay destinos registrados. Crea uno en 'Gestionar lugares'.",
+    "errDestinationRequired": "Debes seleccionar un destino para el dispositivo."
   },
   "sensorDetail": {
     "title": "Detalle del dispositivo",
