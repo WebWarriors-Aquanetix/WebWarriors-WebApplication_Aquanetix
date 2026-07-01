@@ -50,7 +50,6 @@ const useMonitoringStore = defineStore('monitoring', () => {
         return monitoringApi.createSensor(payload)
             .then(async response => {
                 const created = SensorAssembler.toEntityFromResource(response.data);
-                // Si el form trajo umbrales, crearlos en el endpoint separado
                 if (sensor.minAlert || sensor.maxAlert) {
                     try {
                         await monitoringApi.createThreshold(created.id, buildThresholdPayload(sensor));
@@ -72,7 +71,6 @@ const useMonitoringStore = defineStore('monitoring', () => {
         return monitoringApi.updateSensor({ id: sensor.id, ...payload })
             .then(async response => {
                 const updated = SensorAssembler.toEntityFromResource(response.data);
-                // Volver a registrar umbrales (el backend crea uno nuevo)
                 if (sensor.minAlert || sensor.maxAlert) {
                     try {
                         await monitoringApi.createThreshold(updated.id, buildThresholdPayload(sensor));
@@ -90,7 +88,6 @@ const useMonitoringStore = defineStore('monitoring', () => {
             .catch(error => { errors.value.push(error); throw error; });
     }
 
-    /** Construye el CreateThresholdResource que espera el backend. */
     function buildThresholdPayload(sensor) {
         return {
             minValue:   Number(sensor.minAlert) || 0,
@@ -158,7 +155,6 @@ const useMonitoringStore = defineStore('monitoring', () => {
     }
 
     function fetchPlans() {
-        // El backend no expone catálogo de planes; usamos los planes conocidos del dominio.
         plans.value = [
             { id: 'basic',      name: 'Basic Monitoring Plan' },
             { id: 'smartcity',  name: 'Smart City Plan' },
@@ -169,7 +165,6 @@ const useMonitoringStore = defineStore('monitoring', () => {
 
     function updateSubscription(updated) {
         const id = subscription.value?.id ?? DEFAULT_SUBSCRIPTION_ID;
-        // El backend solo soporta cancel/renew; reflejamos el cambio localmente.
         subscription.value = { ...subscription.value, ...updated, id };
     }
 
