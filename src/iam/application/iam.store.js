@@ -12,6 +12,7 @@ import {UserAssembler} from "../infrastructure/user.assembler.js";
 import {SignUpCommand} from "../domain/sign-up.command.js";
 import {SignInAssembler} from "../infrastructure/sign-in.assembler.js";
 import {SignInCommand} from "../domain/sign-in.command.js";
+
 const iamApi = new IamApi();
 
 /**
@@ -34,7 +35,6 @@ const useIamStore = defineStore('iam', () => {
     const currentUserId = ref(0);
     /** @type {import('vue').ComputedRef<string|null>} The current authentication token. */
     const currentToken = computed(() => isSignedIn.value ? localStorage.getItem('token') : null);
-
 
     /**
      * Executes the sign-in use case and updates authentication state.
@@ -74,6 +74,16 @@ const useIamStore = defineStore('iam', () => {
             });
     }
 
+    /** Clears the active IAM session and local auth artifacts. */
+    function signOut() {
+        currentUsername.value = null;
+        currentUserId.value = 0;
+        localStorage.removeItem('token');
+        isSignedIn.value = false;
+        console.log('User signed out');
+        errors.value = [];
+    }
+
     /**
      * Executes the sign-up use case and routes the user to the next screen.
      * @param {SignUpCommand} signUpCommand - Sign-up command.
@@ -102,7 +112,6 @@ const useIamStore = defineStore('iam', () => {
             });
     }
 
-
     /**
      * Loads user entities from infrastructure.
      * @returns {void}
@@ -129,6 +138,7 @@ const useIamStore = defineStore('iam', () => {
         isSignedIn,
         signIn,
         signUp,
+        signOut,
         fetchUsers
     };
 });
