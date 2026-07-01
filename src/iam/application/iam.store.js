@@ -7,7 +7,9 @@
 import {IamApi} from "../infrastructure/iam-api.js";
 import {defineStore} from "pinia";
 import {computed, ref} from "vue";
+import {SignUpAssembler} from "../infrastructure/sign-up.assembler.js";
 import {UserAssembler} from "../infrastructure/user.assembler.js";
+import {SignUpCommand} from "../domain/sign-up.command.js";
 
 const iamApi = new IamApi();
 
@@ -33,6 +35,35 @@ const useIamStore = defineStore('iam', () => {
     const currentToken = computed(() => isSignedIn.value ? localStorage.getItem('token') : null);
 
     /**
+     * Executes the sign-up use case and routes the user to the next screen.
+     * @param {SignUpCommand} signUpCommand - Sign-up command.
+     * @param {import('vue-router').Router} router - Router used to redirect on result.
+     * @returns {void}
+     */
+    function signUp(signUpCommand, router) {
+        // Implementation for sign-up action
+        iamApi.signUp(signUpCommand)
+            .then(response => {
+                let signUpResource = SignUpAssembler.toResourceFromResponse(response);
+                if (signUpResource) {
+                    console.log(signUpResource.message);
+                    errors.value = [];
+                    //router.push({name: 'iam-sign-in'});
+                } else {
+                    console.log('Sign-up failed');
+                    errors.value.push(new Error('Sign-up failed'));
+                    //router.push({name: 'iam-sign-up'});
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                errors.value.push(error);
+                //router.push({name: 'iam-sign-up'});
+            });
+    }
+
+
+    /**
      * Loads user entities from infrastructure.
      * @returns {void}
      */
@@ -56,6 +87,7 @@ const useIamStore = defineStore('iam', () => {
         currentUserId,
         currentToken,
         isSignedIn,
+        signUp,
         fetchUsers
     };
 });

@@ -8,6 +8,16 @@ const store = useIamStore();
 
 let isSignedIn = computed(() => !!store.isSignedIn);
 let currentUsername = computed(() => store.currentUsername);
+
+
+/**
+ * Navigate to the sign-up page.
+ * @function performSignUp
+ */
+function performSignUp() {
+  router.push({name: 'iam-sign-up'});
+}
+
 </script>
 
 <template>
@@ -18,7 +28,7 @@ let currentUsername = computed(() => store.currentUsername);
     </div>
     <div v-else>
       <pv-button class="bg-primary" text>Sign In</pv-button>
-      <pv-button class="bg-primary" text>Sign Up</pv-button>
+      <pv-button class="bg-primary" text @click="performSignUp">Sign Up</pv-button>
     </div>
   </div>
 </template>
