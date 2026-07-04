@@ -26,6 +26,7 @@ const useMonitoringStore = defineStore('monitoring', () => {
     const activeAlerts        = computed(() => alerts.value.filter(a => a.status === 'Activa'));
 
     function fetchSensors() {
+        errors.value = []; // limpia errores viejos antes de recargar
         monitoringApi.getSensors()
             .then(async response => {
                 const list = SensorAssembler.toEntitiesFromResponse(response);
@@ -102,15 +103,19 @@ const useMonitoringStore = defineStore('monitoring', () => {
     }
 
     function deleteSensor(id) {
+        errors.value = []; // limpia errores viejos
         return monitoringApi.deleteSensor(id)
             .then(() => {
                 sensors.value = sensors.value.filter(s => String(s.id) !== String(id));
-                fetchAlerts(); // refresca alertas para reflejar la cascada del backend
+                // Las alertas ya se borraron en cascada en el backend; quitamos
+                // localmente las de este device sin re-fetchear (evita 404 residuales).
+                alerts.value = alerts.value.filter(a => String(a.deviceId ?? '') !== String(id));
             })
             .catch(error => { errors.value.push(error); throw error; });
     }
 
     function fetchAlerts() {
+        errors.value = []; // limpia errores viejos antes de recargar
         monitoringApi.getAlerts()
             .then(response => {
                 alerts.value = AlertAssembler.toEntitiesFromResponse(response);
@@ -154,7 +159,12 @@ const useMonitoringStore = defineStore('monitoring', () => {
                 subscriptionLoaded.value = true;
             })
             .catch(error => {
-                errors.value.push(error);
+                // A 404 simply means there is no subscription yet — a valid state,
+                // not an error to surface. Only real failures are pushed to errors.
+                if (error?.response?.status !== 404) {
+                    errors.value.push(error);
+                }
+                subscription.value = null;
                 subscriptionLoaded.value = true; // evita spinner infinito
             });
     }
