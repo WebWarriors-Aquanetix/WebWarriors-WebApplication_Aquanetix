@@ -2,19 +2,28 @@
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import useMonitoringStore from '../../../monitoring/application/monitoring.store.js';
+import useSubscriptionStore from '../../../subscriptions/application/subscription.store.js';
 import { onMounted, toRefs, computed } from 'vue';
 
 const { t } = useI18n();
 const router = useRouter();
 const store = useMonitoringStore();
-const { sensors, alerts, subscription, sensorsLoaded, alertsLoaded, subscriptionLoaded } = toRefs(store);
-const { fetchSensors, fetchAlerts, fetchSubscription } = store;
+const subscriptionStore = useSubscriptionStore();
+const { sensors, alerts, sensorsLoaded, alertsLoaded } = toRefs(store);
+const { subscription, plans, subscriptionLoaded } = toRefs(subscriptionStore);
+const { fetchSensors, fetchAlerts } = store;
+const { fetchSubscription, fetchPlans } = subscriptionStore;
 
 onMounted(() => {
   if (!store.sensorsLoaded)      fetchSensors();
   if (!store.alertsLoaded)       fetchAlerts();
-  if (!store.subscriptionLoaded) fetchSubscription();
+  if (!subscriptionStore.subscriptionLoaded) fetchSubscription();
+  if (!subscriptionStore.plansLoaded)        fetchPlans();
 });
+
+// Cross the current subscription's plan with the real catalog to get its price.
+const currentPlan = computed(() =>
+  plans.value.find(p => p.name === subscription.value?.plan) ?? null);
 
 const activeSensors  = computed(() => sensors.value.filter(s => s.status !== 'Alerta').length);
 const criticalAlerts = computed(() => alerts.value.filter(a => a.severity === 'Crítica' && a.status === 'Activa').length);
@@ -228,8 +237,8 @@ const formatDate = (iso) => {
               <i class="pi pi-crown" style="color: var(--color-cobalt); font-size: 1.3rem;"></i>
               <span class="font-semibold">{{ subscription.plan }}</span>
             </div>
-            <p class="text-sm text-color-secondary m-0">
-              S/ {{ subscription.price.toFixed(2) }} / {{ t('subscription.monthly') }}
+            <p v-if="currentPlan" class="text-sm text-color-secondary m-0">
+              S/ {{ currentPlan.monthlyCost.toFixed(2) }} / {{ t('subscription.monthly') }}
             </p>
             <pv-button
                 :label="t('dashboard.viewSubscription')"

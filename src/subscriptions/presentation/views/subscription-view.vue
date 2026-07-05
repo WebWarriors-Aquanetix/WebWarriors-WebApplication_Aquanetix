@@ -1,20 +1,35 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import useMonitoringStore from '../../../monitoring/application/monitoring.store.js';
-import { onMounted, toRefs } from 'vue';
+import { onMounted, computed, ref, toRefs } from 'vue';
+import useSubscriptionStore from '../../application/subscription.store.js';
+import { featuresForPlan } from '../../domain/model/plan-features.catalog.js';
 
 const { t } = useI18n();
 const router = useRouter();
-const store = useMonitoringStore();
-const { subscription, subscriptionLoaded } = toRefs(store);
-const { fetchSubscription } = store;
+const store = useSubscriptionStore();
+
+const { subscription, plans, subscriptionLoaded } = toRefs(store);
+const { fetchSubscription, fetchPlans, cancelSubscription, renewSubscription } = store;
 
 onMounted(() => {
   if (!store.subscriptionLoaded) fetchSubscription();
+  if (!store.plansLoaded)        fetchPlans();
 });
 
-const usagePercent = (used, limit) => Math.round((used / limit) * 100);
+// Cross the current subscription's plan name with the real catalog to get price/limit.
+const currentPlan = computed(() =>
+  plans.value.find(p => p.name === subscription.value?.plan) ?? null);
+
+const features = computed(() => featuresForPlan(subscription.value?.plan));
+
+const busy = ref(false);
+const doCancel = async () => { busy.value = true; try { await cancelSubscription(); } finally { busy.value = false; } };
+const doRenew  = async () => { busy.value = true; try { await renewSubscription();  } finally { busy.value = false; } };
+
+const statusSeverity = computed(() =>
+  subscription.value?.status === 'Active' ? 'success'
+  : subscription.value?.status === 'Cancelled' ? 'danger' : 'info');
 </script>
 
 <template>
@@ -28,114 +43,65 @@ const usagePercent = (used, limit) => Math.round((used / limit) * 100);
       <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
     </div>
 
-    <template v-else-if="subscription">
-      <div class="grid">
+    <!-- No subscription yet -->
+    <template v-else-if="!subscription">
+      <pv-card>
+        <template #content>
+          <div class="text-center py-4">
+            <i class="pi pi-inbox" style="font-size:2.5rem;color:#94a3b8;"></i>
+            <p class="mt-3 mb-1 font-medium">{{ t('subscription.noneTitle') }}</p>
+            <p class="text-color-secondary text-sm">{{ t('subscription.noneSubtitle') }}</p>
+          </div>
+        </template>
+      </pv-card>
+    </template>
 
-        <!-- Plan card -->
-        <div class="col-12 lg:col-5">
-          <pv-card class="mb-3" style="border-top: 4px solid #007BFF;">
+    <!-- Active subscription -->
+    <template v-else>
+      <div class="grid">
+        <div class="col-12 lg:col-6">
+          <pv-card style="border-top: 4px solid #007BFF;">
             <template #content>
-              <pv-tag value="Plan actual" severity="info" class="mb-3" />
+              <div class="flex align-items-center justify-content-between mb-3">
+                <pv-tag :value="t('subscription.currentPlanTag')" severity="info" />
+                <pv-tag :value="subscription.status" :severity="statusSeverity" />
+              </div>
+
               <div class="flex align-items-center gap-3 mb-3">
                 <i class="pi pi-crown" style="color: #007BFF; font-size: 2rem;"></i>
-                <div>
-                  <h2 class="m-0 text-xl">{{ subscription.plan }}</h2>
-                  <p class="text-color-secondary text-sm m-0">{{ subscription.tier }}</p>
-                </div>
+                <h2 class="m-0 text-2xl">{{ subscription.plan }}</h2>
               </div>
-              <p class="m-0 mb-3" style="font-size: 2.2rem; font-weight: 700; color: #007BFF;">
-                S/ {{ subscription.price.toFixed(2) }}
+
+              <p v-if="currentPlan" class="m-0 mb-3" style="font-size: 2.2rem; font-weight: 700; color: #007BFF;">
+                S/ {{ currentPlan.monthlyCost.toLocaleString('es-PE') }}
                 <span style="font-size: 1rem; font-weight: 400; color: #64748b;">/ {{ t('subscription.monthly') }}</span>
               </p>
+
+              <div v-if="currentPlan" class="mb-3 p-2" style="background:#f8fafc;border-radius:8px;">
+                <i class="pi pi-database mr-1" style="color:#007BFF;"></i>
+                <span class="text-sm font-medium">
+                  {{ currentPlan.isUnlimited ? t('subscription.unlimitedDevices') : t('subscription.upToDevices', { n: currentPlan.maxDevices }) }}
+                </span>
+              </div>
+
               <ul class="list-none p-0 m-0 flex flex-column gap-2 mb-4">
-                <li v-for="feature in subscription.features" :key="feature" class="flex align-items-center gap-2 text-sm">
-                  <i class="pi pi-check" style="color: #10B981;"></i>
-                  {{ feature }}
+                <li v-for="feature in features" :key="feature" class="flex align-items-center gap-2 text-sm">
+                  <i class="pi pi-check" style="color: #10B981;"></i>{{ feature }}
                 </li>
               </ul>
-              <div class="flex gap-2">
-                <pv-button :label="t('subscription.changePlan')" icon="pi pi-refresh" outlined size="small" @click="router.push({ name: 'subscription-change-plan' })" />
-                <pv-button :label="t('subscription.cancelSubscription')" severity="danger" text size="small" />
+
+              <div class="flex gap-2 flex-wrap">
+                <pv-button :label="t('subscription.changePlan')" icon="pi pi-refresh" outlined size="small"
+                           @click="router.push({ name: 'subscription-change-plan' })" />
+                <pv-button v-if="subscription.status !== 'Cancelled'"
+                           :label="t('subscription.cancelSubscription')" severity="danger" text size="small"
+                           :loading="busy" @click="doCancel" />
+                <pv-button v-else
+                           :label="t('subscription.renewSubscription')" severity="success" text size="small"
+                           :loading="busy" @click="doRenew" />
               </div>
             </template>
           </pv-card>
-        </div>
-
-        <!-- Usage + billing -->
-        <div class="col-12 lg:col-7 flex flex-column gap-3">
-
-          <pv-card>
-            <template #title>{{ t('subscription.planUsage') }}</template>
-            <template #content>
-              <!-- Sensors -->
-              <div class="mb-3">
-                <div class="flex justify-content-between mb-1">
-                  <span class="text-sm">{{ t('subscription.sensorsConnected') }}</span>
-                  <span class="text-sm font-bold">{{ subscription.usage.sensorsConnected }} / {{ subscription.usage.sensorsLimit }}</span>
-                </div>
-                <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                  <div :style="{ width: usagePercent(subscription.usage.sensorsConnected, subscription.usage.sensorsLimit) + '%', height: '100%', background: '#007BFF', borderRadius: '4px' }"></div>
-                </div>
-              </div>
-              <!-- Storage -->
-              <div class="mb-3">
-                <div class="flex justify-content-between mb-1">
-                  <span class="text-sm">{{ t('subscription.dataStorage') }}</span>
-                  <span class="text-sm font-bold">{{ subscription.usage.storageUsedGB }} GB / {{ subscription.usage.storageLimitGB }} GB</span>
-                </div>
-                <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                  <div :style="{ width: usagePercent(subscription.usage.storageUsedGB, subscription.usage.storageLimitGB) + '%', height: '100%', background: '#10B981', borderRadius: '4px' }"></div>
-                </div>
-              </div>
-              <!-- Exports -->
-              <div>
-                <div class="flex justify-content-between mb-1">
-                  <span class="text-sm">{{ t('subscription.dataExports') }}</span>
-                  <span class="text-sm font-bold">{{ subscription.usage.exports }} / {{ subscription.usage.exportsLimit }}</span>
-                </div>
-                <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                  <div :style="{ width: usagePercent(subscription.usage.exports, subscription.usage.exportsLimit) + '%', height: '100%', background: '#f59e0b', borderRadius: '4px' }"></div>
-                </div>
-              </div>
-            </template>
-          </pv-card>
-
-          <pv-card>
-            <template #title>{{ t('subscription.billingInfo') }}</template>
-            <template #content>
-              <!-- Grid de 2 columnas con style inline -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px;">
-                <span class="text-sm text-color-secondary">{{ t('subscription.paymentMethod') }}</span>
-                <span class="text-sm font-medium">{{ subscription.paymentMethod }}</span>
-
-                <span class="text-sm text-color-secondary">{{ t('subscription.startDate') }}</span>
-                <span class="text-sm font-medium">{{ subscription.startDate }}</span>
-
-                <span class="text-sm text-color-secondary">{{ t('subscription.nextBilling') }}</span>
-                <span class="text-sm font-medium">{{ subscription.nextBillingDate }}</span>
-
-                <span class="text-sm text-color-secondary">{{ t('subscription.amount') }}</span>
-                <span class="text-sm font-medium">S/ {{ subscription.price.toFixed(2) }}</span>
-
-                <span class="text-sm text-color-secondary">{{ t('subscription.billingCycle') }}</span>
-                <span class="text-sm font-medium">{{ t('subscription.monthly_label') }}</span>
-              </div>
-            </template>
-          </pv-card>
-
-          <pv-card>
-            <template #content>
-              <div class="flex align-items-start gap-3">
-                <i class="pi pi-headphones" style="color: #10B981; font-size: 1.4rem;"></i>
-                <div>
-                  <p class="font-bold m-0">{{ t('subscription.needHelp') }}</p>
-                  <p class="text-sm text-color-secondary mt-1 mb-2">{{ t('subscription.helpText') }}</p>
-                  <pv-button :label="t('subscription.contactSupport')" icon="pi pi-envelope" outlined size="small" />
-                </div>
-              </div>
-            </template>
-          </pv-card>
-
         </div>
       </div>
     </template>
