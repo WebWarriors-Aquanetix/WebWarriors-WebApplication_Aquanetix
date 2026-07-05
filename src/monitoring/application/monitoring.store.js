@@ -6,20 +6,14 @@ import { AlertAssembler } from '../infrastructure/alert.assembler.js';
 
 const monitoringApi = new MonitoringApi();
 
-const DEFAULT_SUBSCRIPTION_ID = import.meta.env.VITE_DEFAULT_SUBSCRIPTION_ID ?? '1';
-
 const useMonitoringStore = defineStore('monitoring', () => {
 
     const sensors      = ref([]);
     const alerts       = ref([]);
-    const subscription = ref(null);
-    const plans        = ref([]);
     const errors       = ref([]);
 
     const sensorsLoaded      = ref(false);
     const alertsLoaded       = ref(false);
-    const subscriptionLoaded = ref(false);
-    const plansLoaded        = ref(false);
 
     const activeSensorsCount  = computed(() => sensors.value.filter(s => s.status !== 'Alerta').length);
     const criticalAlertsCount = computed(() => alerts.value.filter(a => a.severity === 'Crítica' && a.status === 'Activa').length);
@@ -151,47 +145,12 @@ const useMonitoringStore = defineStore('monitoring', () => {
         alerts.value = alerts.value.filter(a => a.sensorName !== sensorName);
     }
 
-    // ── Subscription ─────────────────────────────────────────────────────
-    function fetchSubscription() {
-        monitoringApi.getSubscriptionById(DEFAULT_SUBSCRIPTION_ID)
-            .then(response => {
-                subscription.value = response.data;
-                subscriptionLoaded.value = true;
-            })
-            .catch(error => {
-                // A 404 simply means there is no subscription yet — a valid state,
-                // not an error to surface. Only real failures are pushed to errors.
-                if (error?.response?.status !== 404) {
-                    errors.value.push(error);
-                }
-                subscription.value = null;
-                subscriptionLoaded.value = true; // evita spinner infinito
-            });
-    }
-
-    function fetchPlans() {
-        // El backend no expone catálogo de planes; usamos los planes conocidos del dominio.
-        plans.value = [
-            { id: 'basic',      name: 'Basic Monitoring Plan' },
-            { id: 'smartcity',  name: 'Smart City Plan' },
-            { id: 'industrial', name: 'Industrial Plan' },
-        ];
-        plansLoaded.value = true;
-    }
-
-    function updateSubscription(updated) {
-        const id = subscription.value?.id ?? DEFAULT_SUBSCRIPTION_ID;
-        // El backend solo soporta cancel/renew; reflejamos el cambio localmente.
-        subscription.value = { ...subscription.value, ...updated, id };
-    }
-
     return {
-        sensors, alerts, subscription, plans, errors,
-        sensorsLoaded, alertsLoaded, subscriptionLoaded, plansLoaded,
+        sensors, alerts, errors,
+        sensorsLoaded, alertsLoaded,
         activeSensorsCount, criticalAlertsCount, activeAlerts,
         fetchSensors, getSensorById, addSensor, updateSensor, deleteSensor,
-        fetchAlerts, addAlert, resolveAlertBySensorName, deleteAlertsBySensorName,
-        fetchSubscription, fetchPlans, updateSubscription
+        fetchAlerts, addAlert, resolveAlertBySensorName, deleteAlertsBySensorName
     };
 });
 
