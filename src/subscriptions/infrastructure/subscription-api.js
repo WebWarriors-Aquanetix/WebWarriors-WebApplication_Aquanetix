@@ -22,6 +22,7 @@ export class SubscriptionApi extends BaseApi {
 
     getPlans()               { return this.http.get(`${subscriptionsPath}/plans`); }
     getSubscriptionById(id)  { return this.#endpoint.getById(id); }
+    getSubscriptionByUserId(userId) { return this.http.get(`${subscriptionsPath}/by-user/${userId}`); }
     createSubscription(r)    { return this.#endpoint.create(r); }
     cancelSubscription(id)   { return this.http.put(`${subscriptionsPath}/${id}/cancel`); }
     renewSubscription(id)    { return this.http.put(`${subscriptionsPath}/${id}/renew`); }

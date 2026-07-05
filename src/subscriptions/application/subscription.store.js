@@ -28,7 +28,26 @@ const useSubscriptionStore = defineStore('subscription', () => {
             .catch(error => { errors.value.push(error); plansLoaded.value = true; });
     }
 
-    function fetchSubscription(id = DEFAULT_SUBSCRIPTION_ID) {
+    function fetchSubscription(id = null) {
+        // Use the logged-in user's id (set by IAM on login) to fetch THEIR subscription.
+        const userId = Number(localStorage.getItem('userId') || 0);
+        if (userId > 0) {
+            errors.value = [];
+            return subscriptionApi.getSubscriptionByUserId(userId)
+                .then(response => {
+                    subscription.value = SubscriptionAssembler.toEntityFromResource(response.data);
+                    subscriptionLoaded.value = true;
+                })
+                .catch(error => {
+                    if (error?.response?.status !== 404) errors.value.push(error);
+                    subscription.value = null;
+                    subscriptionLoaded.value = true;
+                });
+        }
+        return fetchSubscriptionById(id ?? DEFAULT_SUBSCRIPTION_ID);
+    }
+
+    function fetchSubscriptionById(id = DEFAULT_SUBSCRIPTION_ID) {
         errors.value = [];
         return subscriptionApi.getSubscriptionById(id)
             .then(response => {

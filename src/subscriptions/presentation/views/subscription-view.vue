@@ -13,7 +13,7 @@ const { subscription, plans, subscriptionLoaded } = toRefs(store);
 const { fetchSubscription, fetchPlans, cancelSubscription, renewSubscription } = store;
 
 onMounted(() => {
-  if (!store.subscriptionLoaded) fetchSubscription();
+  fetchSubscription(); // always refetch: user may have changed
   if (!store.plansLoaded)        fetchPlans();
 });
 
