@@ -14,7 +14,7 @@ const { fetchPlans, fetchSubscription, changePlan } = store;
 
 onMounted(() => {
   if (!store.plansLoaded)        fetchPlans();
-  if (!store.subscriptionLoaded) fetchSubscription();
+  fetchSubscription();
 });
 
 const currentPlanName = computed(() => subscription.value?.plan ?? '');

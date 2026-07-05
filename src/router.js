@@ -24,9 +24,23 @@ const router = createRouter({
     routes
 });
 
+// Public routes (no authentication required).
+const PUBLIC_ROUTES = ['iam-sign-in', 'iam-sign-up'];
+
 router.beforeEach((to, from, next) => {
-    const baseTitle = 'Aquanetix';
-    document.title = `${baseTitle} - ${to.meta['title'] || 'App'}`;
+    document.title = `Aquanetix - ${to.meta['title'] || 'App'}`;
+
+    const isPublic = PUBLIC_ROUTES.includes(to.name);
+    const hasToken = !!localStorage.getItem('token');
+
+    // Not authenticated and going to a protected page → send to sign-in.
+    if (!hasToken && !isPublic) {
+        return next({ name: 'iam-sign-in' });
+    }
+    // Already authenticated and going to sign-in/up → send to dashboard.
+    if (hasToken && isPublic) {
+        return next({ name: 'dashboard-view' });
+    }
     return next();
 });
 

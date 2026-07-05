@@ -1,59 +1,57 @@
 <script setup>
 import useIamStore from "../../application/iam.store.js";
-import {reactive} from "vue";
-import {SignInCommand} from "../../domain/sign-in.command.js";
-import {useRouter} from "vue-router";
+import { reactive, ref } from "vue";
+import { SignInCommand } from "../../domain/sign-in.command.js";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const store = useIamStore();
-const {signIn} = store;
-const form = reactive({
-  username: '',
-  password: ''
-})
-/**
- * Performs the sign-in action by creating a SignInCommand
- * with the provided username and password, and then calling
- * the signIn method from the store. Navigation is handled
- * automatically upon successful sign-in.
- */
+const { signIn } = store;
+const form = reactive({ email: '', password: '' });
+const errorMsg = ref('');
+
 function performSignIn() {
-  let signInCommand = new SignInCommand(form);
-  console.log(signInCommand);
+  errorMsg.value = '';
+  if (!form.email || !form.password) {
+    errorMsg.value = 'Correo y contraseña son obligatorios.';
+    return;
+  }
+  const signInCommand = new SignInCommand(form);
   signIn(signInCommand, router);
 }
 </script>
 
 <template>
-  <div>
-    <h3>Sign In</h3>
-  </div>
-  <p class="p-fluid mb-5">Please enter the required information to sign in.</p>
-  <div>
+  <div class="p-4" style="max-width: 420px; margin: 0 auto;">
+    <h3 class="mb-1">Iniciar sesión</h3>
+    <p class="text-color-secondary mb-4">Ingresa tus credenciales.</p>
+
     <form @submit.prevent="performSignIn">
-      <div class="p-fluid">
-        <div class="field mt-5">
-          <pv-float-label>
-            <label for="username">Username</label>
-            <pv-input-text id="username" v-model="form.username" :class="{'p-invalid': !form.username}"/>
-            <small v-if="!form.username" class="p-invalid">Username is required.</small>
-          </pv-float-label>
+      <div class="p-fluid flex flex-column gap-3">
+        <div class="field">
+          <label for="email" class="block mb-1">Correo</label>
+          <pv-input-text id="email" v-model="form.email" type="email"
+                         :class="{'p-invalid': !form.email}" placeholder="tucorreo@ejemplo.com" />
         </div>
-        <div class="p-field mt-5">
-          <pv-float-label>
-            <label for="password">Password</label>
-            <pv-input-text id="password" v-model="form.password" :class="{'p-invalid': !form.password}" type="password"/>
-            <small v-if="!form.password" class="p-invalid">Password is required.</small>
-          </pv-float-label>
+        <div class="field">
+          <label for="password" class="block mb-1">Contraseña</label>
+          <pv-input-text id="password" v-model="form.password" type="password"
+                         :class="{'p-invalid': !form.password}" placeholder="••••••" />
         </div>
-        <div class="p-field mt-5">
-          <pv-button type="submit">Sign In</pv-button>
+
+        <div v-if="errorMsg" class="p-2" style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;color:#b91c1c;">
+          {{ errorMsg }}
         </div>
+
+        <pv-button type="submit" label="Entrar" class="mt-2" />
+
+        <p class="text-center text-sm mt-2">
+          ¿No tienes cuenta?
+          <a href="#" @click.prevent="router.push({ name: 'iam-sign-up' })" style="color:#007BFF;">Regístrate</a>
+        </p>
       </div>
     </form>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
