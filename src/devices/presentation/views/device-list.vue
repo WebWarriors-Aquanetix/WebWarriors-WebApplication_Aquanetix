@@ -11,6 +11,7 @@ const { sensors, sensorsLoaded, errors } = toRefs(store);
 const { fetchSensors } = store;
 
 onMounted(() => {
+  store.errors = []; // clear stale errors (e.g. a device-limit 400 from the form)
   if (!store.sensorsLoaded) fetchSensors();
 });
 

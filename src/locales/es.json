@@ -117,7 +117,9 @@
     "alertAutoNote": "Si el valor está fuera del rango, se creará una alerta automáticamente.",
     "selectDestination": "Selecciona un destino",
     "noDestinations": "No hay destinos registrados. Crea uno en 'Gestionar lugares'.",
-    "errDestinationRequired": "Debes seleccionar un destino para el dispositivo."
+    "errDestinationRequired": "Debes seleccionar un destino para el dispositivo.",
+    "upgradePlan": "Mejorar plan",
+    "errSaveGeneric": "No se pudo guardar el dispositivo. Intenta de nuevo."
   },
   "sensorDetail": {
     "title": "Detalle del dispositivo",

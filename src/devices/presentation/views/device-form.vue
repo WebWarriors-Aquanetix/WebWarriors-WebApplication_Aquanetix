@@ -21,6 +21,7 @@ const destinationOptions = computed(() =>
 
 const showDeleteDialog = ref(false);
 const formError = ref('');
+const isLimitError = ref(false);
 
 const confirmDelete = () => {
   deleteAlertsBySensorName(form.value.name);
@@ -116,6 +117,7 @@ onMounted(() => {
 
 const saveSensor = async () => {
   formError.value = '';
+  isLimitError.value = false;
   const cv     = Number(form.value.currentValue) || 0;
   const min    = Number(form.value.minAlert);
   const max    = Number(form.value.maxAlert);
@@ -175,7 +177,13 @@ const saveSensor = async () => {
       addAlert(buildAlert(form.value.name, severity, cv, min, max));
     }
   } catch (e) {
-    // el store ya registró el error en store.errors
+    // Show the backend's message (e.g. plan device limit reached → 400).
+    const backendMsg = e?.response?.data?.message;
+    formError.value = backendMsg || t('sensors.errSaveGeneric');
+    // Detect the plan-limit case to offer an "upgrade plan" shortcut.
+    isLimitError.value = e?.response?.status === 400
+      && /límite|limit/i.test(backendMsg || '');
+    return; // stay on the form so the user sees why it failed
   }
 
   navigateBack();
@@ -197,6 +205,10 @@ const navigateBack = () => {
       <div v-if="formError" class="mb-3 p-3"
            style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;">
         <i class="pi pi-exclamation-circle mr-2"></i>{{ formError }}
+        <div v-if="isLimitError" class="mt-2">
+          <pv-button :label="t('sensors.upgradePlan')" icon="pi pi-arrow-up" size="small"
+                     @click="router.push({ name: 'subscription-detail' })" />
+        </div>
       </div>
 
       <div class="field mb-3">
