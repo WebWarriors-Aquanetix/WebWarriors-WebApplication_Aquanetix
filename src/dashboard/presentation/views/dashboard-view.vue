@@ -17,7 +17,7 @@ const { fetchSubscription, fetchPlans } = subscriptionStore;
 onMounted(() => {
   if (!store.sensorsLoaded)      fetchSensors();
   if (!store.alertsLoaded)       fetchAlerts();
-  if (!subscriptionStore.subscriptionLoaded) fetchSubscription();
+  fetchSubscription();
   if (!subscriptionStore.plansLoaded)        fetchPlans();
 });
 
