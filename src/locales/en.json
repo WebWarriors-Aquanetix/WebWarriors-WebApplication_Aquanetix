@@ -117,7 +117,9 @@
     "alertAutoNote": "If the value is out of range, an alert will be created automatically.",
     "selectDestination": "Select a destination",
     "noDestinations": "No destinations registered. Create one in 'Manage sites'.",
-    "errDestinationRequired": "You must select a destination for the device."
+    "errDestinationRequired": "You must select a destination for the device.",
+    "upgradePlan": "Upgrade plan",
+    "errSaveGeneric": "Could not save the device. Please try again."
   },
   "sensorDetail": {
     "title": "Device detail",
