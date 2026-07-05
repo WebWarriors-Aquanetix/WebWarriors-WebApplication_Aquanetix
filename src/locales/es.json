@@ -208,7 +208,16 @@
     "newPrice": "Nuevo precio",
     "cycle": "Ciclo de facturación",
     "annualSavings": "Ahorro anual",
-    "confirmButton": "Confirmar cambio"
+    "confirmButton": "Confirmar cambio",
+    "currentPlanTag": "Plan actual",
+    "renewSubscription": "Renovar suscripción",
+    "unlimitedDevices": "Dispositivos ilimitados",
+    "upToDevices": "Hasta {n} dispositivos",
+    "deviceLimit": "Límite de dispositivos",
+    "unlimited": "Ilimitado",
+    "changeError": "No se pudo cambiar el plan. Intenta de nuevo.",
+    "noneTitle": "No tienes una suscripción activa",
+    "noneSubtitle": "Elige un plan para comenzar a monitorear."
   },
   "destinations": {
     "title": "Lugares de destino",
