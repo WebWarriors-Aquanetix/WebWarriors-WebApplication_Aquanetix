@@ -17,7 +17,7 @@ const { fetchSubscription, fetchPlans } = subscriptionStore;
 onMounted(() => {
   if (!store.sensorsLoaded)      fetchSensors();
   if (!store.alertsLoaded)       fetchAlerts();
-  fetchSubscription();
+  if (!subscriptionStore.subscriptionLoaded) fetchSubscription();
   if (!subscriptionStore.plansLoaded)        fetchPlans();
 });
 
@@ -85,37 +85,7 @@ const formatDate = (iso) => {
         </pv-card>
       </div>
 
-      <!-- Treated volume (static mock) -->
-      <div class="col-12 md:col-6 lg:col-3">
-        <pv-card>
-          <template #content>
-            <div class="flex align-items-center justify-content-between">
-              <div>
-                <p class="text-sm text-color-secondary m-0 mb-1">{{ t('dashboard.treatedVolume') }}</p>
-                <p class="text-4xl font-bold m-0" style="color: var(--color-text); line-height: 1.1;">12,540 <span style="font-size:1rem">m³</span></p>
-                <p class="text-xs mt-1 mb-0" style="color: var(--color-emerald);">+4.2% {{ t('dashboard.vsYesterday') }}</p>
-              </div>
-              <i class="pi pi-cloud" style="font-size: 2.2rem; color: var(--color-emerald); opacity: 0.8;"></i>
-            </div>
-          </template>
-        </pv-card>
-      </div>
-
-      <!-- Efficiency (static mock) -->
-      <div class="col-12 md:col-6 lg:col-3">
-        <pv-card>
-          <template #content>
-            <div class="flex align-items-center justify-content-between">
-              <div>
-                <p class="text-sm text-color-secondary m-0 mb-1">{{ t('dashboard.efficiency') }}</p>
-                <p class="text-4xl font-bold m-0" style="color: var(--color-emerald); line-height: 1.1;">92%</p>
-                <p class="text-xs text-color-secondary mt-1 mb-0">{{ t('dashboard.optimal') }}</p>
-              </div>
-              <i class="pi pi-check-circle" style="font-size: 2.2rem; color: var(--color-emerald); opacity: 0.8;"></i>
-            </div>
-          </template>
-        </pv-card>
-      </div>
+      
     </div>
 
     <!-- Bottom row: sensors table + system status + alerts -->
@@ -181,8 +151,6 @@ const formatDate = (iso) => {
                 <p class="text-sm text-color-secondary mt-1">{{ t('dashboard.operatingNormally') }}</p>
                 <ul class="mt-2 pl-3 text-sm">
                   <li>{{ t('dashboard.operatingPoints', { n: sensorsLoaded ? activeSensors : '…', total: sensors.length }) }}</li>
-                  <li>{{ t('dashboard.activePumps') }}</li>
-                  <li>{{ t('dashboard.energyConsumption') }}</li>
                 </ul>
               </div>
             </div>
